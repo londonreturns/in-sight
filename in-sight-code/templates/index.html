@@ -5,14 +5,40 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>Welcome to In-sight</h1>
-                <p class="lead">In-sight is a web application that allows you to upload images and get a description of
-                    the image using the Microsoft Azure Computer Vision API.</p>
-                <p>Click the button below to get started.</p>
-                <a href="/" class="btn btn-primary">Get Started</a>
+    <div class="container text-center">
+        <div class="row align-items-start">
+            <div class="col column-left">
+                {% if video %}
+                    <video width="320" height="240" controls>
+                        <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                {% else %}
+                    <h1 class="display-4">Welcome to In-sight</h1>
+                {% endif %}
+            </div>
+            <div class="col column-right">
+                <form action="/uploadVideo" method="post" enctype="multipart/form-data">
+                    <label>
+                        Input
+                    </label>
+                    <br>
+                    <input class="py-3" type="file" name="video" id="videoFile" accept="video/mp4">
+                    <br>
+                    <button id="uploadButton" type="button" class="btn bg-dark mb-3">Process</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                <!-- Message will be updated here -->
             </div>
         </div>
     </div>

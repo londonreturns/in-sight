@@ -18,3 +18,21 @@
     font-family: 'Roboto', sans-serif;
     font-weight: bold;
 }
+
+.column-left{
+    height: 100px;
+}
+
+.column-right{
+    width: 50px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.btn{
+    color: #ffffff;
+}
+
+.btn:hover{
+    color: #FFE34F;
+}
