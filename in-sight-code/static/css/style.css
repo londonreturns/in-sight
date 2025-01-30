@@ -1,0 +1,20 @@
+.logo{
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: block;
+}
+
+.logo{
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 10%;
+    border: 2px solid #000;
+}
+
+.title{
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+}
