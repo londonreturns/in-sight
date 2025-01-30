@@ -5,17 +5,10 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container text-center">
+    <div class="container text-center py-5">
         <div class="row align-items-start">
             <div class="col column-left">
-                {% if video %}
-                    <video width="320" height="240" controls>
-                        <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                {% else %}
-                    <h1 class="display-4">Welcome to In-sight</h1>
-                {% endif %}
+                <h4 class="mt-5">Welcome to In-sight</h4>
             </div>
             <div class="col column-right">
                 <form action="/uploadVideo" method="post" enctype="multipart/form-data">

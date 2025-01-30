@@ -1,5 +1,3 @@
-
-
 async function sendVideo(file) {
     const formData = new FormData();
     formData.append('video', file);
@@ -16,6 +14,12 @@ async function sendVideo(file) {
 
         if (response.ok) {
             toastMessage.innerText = 'Video uploaded successfully';
+            document.querySelector(".column-left").innerHTML = `
+                <video width="300" controls muted>
+                    <source src="/video/${data.video_id}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            `;
         } else {
             toastMessage.innerText = data.error || 'Error uploading video';
         }
