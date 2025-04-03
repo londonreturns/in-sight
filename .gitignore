@@ -1,3 +1,4 @@
 .venv
-in-sight-code/.idea
+.idea
+in-sight-code/__pycache__
 in-sight-code/.env

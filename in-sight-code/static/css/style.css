@@ -36,3 +36,9 @@
 .btn:hover{
     color: #FFE34F;
 }
+
+.min-vh{
+    min-height: calc(100vh - 487px);
+    display: flex;
+    align-items: center;
+}
