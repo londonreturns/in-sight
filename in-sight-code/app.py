@@ -1,6 +1,6 @@
 from flask import Flask
 from routes import routes
-from flask.cli import load_dotenv
+from dotenv import load_dotenv
 from os import getenv
 
 load_dotenv()

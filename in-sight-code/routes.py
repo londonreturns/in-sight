@@ -1,8 +1,5 @@
-from bson import ObjectId
 from flask import Blueprint, render_template, request, jsonify, make_response, url_for
-from database import store_video
-from database import open_connection, close_connection
-import gridfs
+from database import store_video, query_video
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -35,11 +32,4 @@ def upload_video():
 
 @routes.route('/video/<video_id>')
 def get_video(video_id):
-    db, client = open_connection()
-    fs = gridfs.GridFS(db)
-    video_file = fs.get(ObjectId(video_id))
-    response = make_response(video_file.read())
-    response.headers['Content-Type'] = video_file.content_type
-    response.headers['Content-Disposition'] = f'attachment; filename={video_file.filename}'
-    close_connection(client)
-    return response
+    return query_video(video_id)
