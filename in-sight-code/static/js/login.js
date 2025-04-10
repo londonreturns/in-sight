@@ -1,4 +1,5 @@
 import showToast from "./toast.js";
+import delay from "./delay.js";
 
 document.addEventListener("DOMContentLoaded", function () {
     let toastElement = document.getElementById("registrationToast");
@@ -34,6 +35,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const responseData = await response.json();
 
             if (response.ok) {
+                showToast("Login successful!", "success");
+                await delay(1500);
+
+                showToast("Redirecting to homepage...", "processing");
+                await delay(1500);
+
                 window.location.replace("/index");
             } else {
                 showToast(responseData.error || "Invalid login credentials.", "error");

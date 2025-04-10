@@ -4,13 +4,16 @@ from pymongo import MongoClient
 from os import getenv
 import gridfs
 
+
 def open_connection():
     client = MongoClient(getenv('DATABASE_CONNECTION_STRING'))
     db = client['in-sight']
     return db, client
 
+
 def close_connection(client):
     client.close()
+
 
 def store_video(video):
     db, client = open_connection()
@@ -24,6 +27,7 @@ def store_video(video):
     db.videos.insert_one(video_document)
     close_connection(client)
     return video_id
+
 
 def query_video(video_id):
     db, client = open_connection()

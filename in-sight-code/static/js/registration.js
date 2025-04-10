@@ -1,4 +1,5 @@
 import showToast from "./toast.js";
+import delay from "./delay.js";
 
 document.querySelector("#registerButton").addEventListener("click", async function (event) {
     event.preventDefault();
@@ -29,10 +30,13 @@ document.querySelector("#registerButton").addEventListener("click", async functi
         const responseData = await response.json();
 
         if (response.ok) {
-            showToast("Registration successful! Redirecting to login...", "processing");
-            setTimeout(() => {
-                window.location.replace("/loginPage");
-            }, 3000); // Redirect after 3 seconds
+            showToast("Registration successful!", "success");
+            await delay(1500);
+
+            showToast("Redirecting to login page...", "processing");
+            await delay(1500);
+
+            window.location.replace("/loginPage");
         } else {
             showToast(responseData.error, "error");
         }
