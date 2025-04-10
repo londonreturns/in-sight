@@ -29,16 +29,16 @@ document.querySelector("#registerButton").addEventListener("click", async functi
         const responseData = await response.json();
 
         if (response.ok) {
-            showToast("Registration successful! Redirecting to login...");
+            showToast("Registration successful! Redirecting to login...", "processing");
             setTimeout(() => {
                 window.location.replace("/loginPage");
             }, 3000); // Redirect after 3 seconds
         } else {
-            showToast(responseData.error);
+            showToast(responseData.error, "error");
         }
 
     } catch (error) {
-        showToast('An error occurred.');
+        showToast('An error occurred.', "error");
     }
 });
 

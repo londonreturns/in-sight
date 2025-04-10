@@ -1,13 +1,11 @@
 import showToast from "./toast.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Handle registration success toast
     let toastElement = document.getElementById("registrationToast");
     if (toastElement) {
-        showToast(toastElement);
+        showToast(toastElement, "success");
     }
 
-    // Handle login form submission
     document.querySelector("button[type='submit']").addEventListener("click", async function (event) {
         event.preventDefault();
 
@@ -15,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let password = document.querySelector("#exampleInputPassword1").value;
 
         if (!email || !password) {
-            showToast("Email and password are required.");
+            showToast("Email and password are required.", "error");
             return;
         }
 
@@ -38,10 +36,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (response.ok) {
                 window.location.replace("/index");
             } else {
-                showToast(responseData.error || "Invalid login credentials.");
+                showToast(responseData.error || "Invalid login credentials.", "error");
             }
         } catch (error) {
-            showToast("An error occurred while logging in.");
+            showToast("An error occurred while logging in.", "error");
         }
     });
 });
