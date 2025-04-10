@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, jsonify, make_response, url_for
+from flask import Blueprint, render_template, request, jsonify, url_for
 from database import store_video, query_video
+from user import add_user_to_db, get_user_from_db
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -33,3 +34,51 @@ def upload_video():
 @routes.route('/video/<video_id>')
 def get_video(video_id):
     return query_video(video_id)
+
+@routes.route('/loginPage')
+def login():
+    currentPage = "login"
+    return render_template('login.html', currentPage=currentPage, registrationSuccessful=False)
+
+@routes.route('/loginPage/successfulRegistration')
+def login_sucessful_registration():
+    currentPage = "login"
+    return render_template('login.html', currentPage=currentPage, registrationSuccessful=True)
+
+@routes.route('/registrationPage')
+def registration():
+    currentPage = "registration"
+    return render_template('registration.html', currentPage=currentPage)
+
+@routes.route('/registerUser', methods=['POST'])
+def register_user():
+    data = request.get_json()
+
+    email = data.get('email')
+    password = data.get('password')
+    confirm_password = data.get('confirmPassword')
+
+    if not email or not password or not confirm_password:
+        return jsonify({"error": "All fields are required"}), 400
+
+    return add_user_to_db(email, password, confirm_password)
+
+@routes.route('/loginUser', methods=['POST'])
+def login_user():
+    data = request.get_json()
+
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({"error": "All fields are required"}), 400
+
+    user = get_user_from_db(email, password)
+
+    if user is None:
+        return jsonify({"error": "User not found. Please check your credentials."}), 404
+
+    if user['password'] == password:
+        return jsonify({"message": "Login successful"}), 200
+    else:
+        return jsonify({"error": "Invalid password. Please try again."}), 401

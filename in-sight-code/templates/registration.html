@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+    In-sight - Registration
+{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-center">
+        <div>
+            <form method="POST" action="/registerUser">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp">
+                    <div id="emailHelp" class="form-text" aria-required="true">We'll never share your email with anyone
+                        else.
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" aria-required="true">
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password"
+                           aria-required="true">
+                </div>
+                <button type="submit" class="btn btn-primary" id="registerButton">Submit</button>
+                <br>
+                <a href="/loginPage">Already have an account?</a>
+            </form>
+        </div>
+    </div>
+    {% include "toast.html" %}
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/registration.js" type="module"></script>
+{% endblock %}

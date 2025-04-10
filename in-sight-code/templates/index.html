@@ -6,35 +6,28 @@
 
 {% block body %}
     <main class="min-vh">
-    <div class="container text-center py-5">
-        <div class="row align-items-start">
-            <div class="col column-left">
-                <h4 class="mt-5">Welcome to In-sight</h4>
-            </div>
-            <div class="col column-right">
-                <form action="/uploadVideo" method="post" enctype="multipart/form-data">
-                    <label>
-                        Input
-                    </label>
-                    <br>
-                    <input class="py-3" type="file" name="video" id="videoFile" accept="video/mp4">
-                    <br>
-                    <button id="uploadButton" type="button" class="btn bg-dark mb-3">Process</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Notification</strong>
-                <small>Just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toastMessage">
-                <!-- Message will be updated here -->
+        <div class="container text-center py-5">
+            <div class="row align-items-start">
+                <div class="col column-left">
+                    <h4 class="mt-5">Welcome to In-sight</h4>
+                </div>
+                <div class="col column-right">
+                    <form action="/uploadVideo" method="post" enctype="multipart/form-data">
+                        <label>
+                            Input
+                        </label>
+                        <br>
+                        <input class="py-3" type="file" name="video" id="videoFile" accept="video/mp4">
+                        <br>
+                        <button id="uploadButton" type="button" class="btn bg-dark mb-3">Process</button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
     </main>
+    {% include "toast.html" %}
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/script.js" type="module"></script>
 {% endblock %}

@@ -38,7 +38,27 @@
 }
 
 .min-vh{
-    min-height: calc(100vh - 487px);
+    min-height: calc(100vh - 486px);
     display: flex;
     align-items: center;
+}
+
+.login {
+    width: 50%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.text-light-success {
+    color: #d4edda;
+}
+
+.text-light-error {
+    color: #f8d7da;
+}
+
+.text-light-processing {
+    color: #d1ecf1;
 }
