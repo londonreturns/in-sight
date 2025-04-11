@@ -15,7 +15,8 @@ def add_user_to_db(email, password, confirm_password):
 
     user_data = {
         "email": email,
-        "password": sha_256(password)
+        "password": sha_256(password),
+        "user_type": "user"
     }
     users_collection.insert_one(user_data)
     close_connection(client)
