@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, url_for
+from flask import Blueprint, render_template, request, jsonify, url_for, session
 from database import store_video, query_video
 from user import add_user_to_db, login_user_from_db
 
@@ -71,7 +71,6 @@ def register_user():
     password = data.get('password')
     confirm_password = data.get('confirmPassword')
 
-    # Call your function to add the user to the database
     response, status_code = add_user_to_db(email, password, confirm_password)
     return jsonify(response), status_code
 
@@ -91,4 +90,15 @@ def login_user():
     if response is None:
         return jsonify({"error": "User not found. Please check your credentials."}), 404
 
+    session["user_type"] = email
+    print(session["user"])
+
     return response
+
+
+@routes.route('/logout', methods=['GET', 'POST'])
+def logout():
+    if "user_type" in session:
+        session.pop('user_type', None)
+        return login()
+    return jsonify({"error": "User is not logged in."}), 401
