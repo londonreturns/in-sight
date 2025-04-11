@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, jsonify, url_for
+from flask import Blueprint, render_template, request, jsonify, url_for, session
 from database import store_video, query_video
 from user import add_user_to_db, login_user_from_db
+from helper import is_logged_in
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -8,14 +9,20 @@ routes = Blueprint('routes', __name__, static_folder='static', template_folder='
 @routes.route('/index')
 @routes.route('/')
 def home():
-    currentPage = "homepage"
-    return render_template('index.html', currentPage=currentPage)
+    if "user_type" in session:
+        currentPage = "homepage"
+        return render_template('index.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
+    else:
+        currentPage = "login"
+        temp = is_logged_in(session)
+        return render_template('login.html', currentPage=currentPage, registrationSuccessful=False,
+                               isLoggedIn=temp)
 
 
 @routes.route('/howItWorks')
 def how_it_works():
     currentPage = "howitworks"
-    return render_template('howItWorks.html', currentPage=currentPage)
+    return render_template('howItWorks.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/uploadVideo', methods=['POST'])
@@ -43,19 +50,21 @@ def get_video(video_id):
 @routes.route('/loginPage')
 def login():
     currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, registrationSuccessful=False)
+    return render_template('login.html', currentPage=currentPage, registrationSuccessful=False,
+                           isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/loginPage/successfulRegistration')
 def login_sucessful_registration():
     currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, registrationSuccessful=True)
+    return render_template('login.html', currentPage=currentPage, registrationSuccessful=True,
+                           isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/registrationPage')
 def registration():
     currentPage = "registration"
-    return render_template('registration.html', currentPage=currentPage)
+    return render_template('registration.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/registerUser', methods=['POST'])
@@ -71,7 +80,6 @@ def register_user():
     password = data.get('password')
     confirm_password = data.get('confirmPassword')
 
-    # Call your function to add the user to the database
     response, status_code = add_user_to_db(email, password, confirm_password)
     return jsonify(response), status_code
 
@@ -91,4 +99,17 @@ def login_user():
     if response is None:
         return jsonify({"error": "User not found. Please check your credentials."}), 404
 
+    session["user_type"] = "user"
+    print(session["user_type"])
+
     return response
+
+
+@routes.route('/logout', methods=['GET', 'POST'])
+def logout():
+    if "user_type" in session:
+        session.pop('user_type', None)
+        return login()
+    currentPage = "login"
+    return render_template('login.html', currentPage=currentPage, registrationSuccessful=False,
+                           isLoggedIn=is_logged_in(session))

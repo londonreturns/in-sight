@@ -1,4 +1,5 @@
 import showToast from "./toast.js";
+import showModal from "./modal.js";
 
 async function sendVideo(file) {
     const formData = new FormData();
@@ -41,4 +42,26 @@ document.querySelector("#uploadButton").addEventListener("click", function () {
         showToast("Preparing to upload: ${file.name}", "processing");
         sendVideo(file);
     }
+});
+
+document.querySelector("#logoutButton").addEventListener("click", function (event) {
+    event.preventDefault();
+
+    showModal(
+        "Confirm Logout",
+        "Are you sure you want to log out?",
+        "Logout",
+        () => {
+            // Perform logout action
+            fetch("/logout", { method: "POST" })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = "/loginPage"; // Redirect to login page
+                    } else {
+                        console.error("Logout failed");
+                    }
+                })
+                .catch(error => console.error("An error occurred:", error));
+        }
+    );
 });
