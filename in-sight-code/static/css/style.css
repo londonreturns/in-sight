@@ -37,6 +37,11 @@
     color: #FFE34F;
 }
 
+.btn-warning{
+    background-color: rgba(255, 227, 79, 0.85);
+    color: #000;
+}
+
 .min-vh{
     min-height: calc(100vh - 486px);
     display: flex;
@@ -61,4 +66,9 @@
 
 .text-light-processing {
     color: #d1ecf1;
+}
+
+.logout-button{
+    background-color: #FFE34F;
+    color: #000;
 }
