@@ -22,11 +22,7 @@ def add_user_to_db(email, password, confirm_password):
 
 
 def login_user_from_db(email, password):
-    db, client = open_connection()
-    users_collection = db['users']
-
-    check_user = users_collection.find_one({"email": email})
-    close_connection(client)
+    check_user = checkIfUserExists(email)
 
     if check_user and compare_passwords(check_user['password'], sha_256(password)):
         return {"message": "Login successful"}, 200
@@ -39,6 +35,6 @@ def login_user_from_db(email, password):
 def checkIfUserExists(email):
     db, client = open_connection()
     users_collection = db['users']
-    existing_user = users_collection.find_one({"username": email})
+    existing_user = users_collection.find_one({"email": email})
     close_connection(client)
     return existing_user is not None

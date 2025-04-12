@@ -1,3 +1,4 @@
+import re
 from os import getenv
 from smtplib import SMTP_SSL
 from email.mime.multipart import MIMEMultipart
@@ -63,3 +64,11 @@ def load_smtp_credentials():
         "host": getenv('SMTP_HOST'),
         "port": int(getenv('SMTP_PORT'))
     }
+
+def validate_email(email):
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.fullmatch(email_regex, email)
+
+def validate_password(password):
+    password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,}$'
+    return re.fullmatch(password_regex, password)
