@@ -31,7 +31,7 @@ document.querySelector("#registerButton").addEventListener("click", async functi
 
         if (response.ok) {
             showToast("Redirecting to account verification...", "processing");
-            await delay(1500);
+            await delay(1000);
 
             window.location.replace("/accountVerification");
         } else {

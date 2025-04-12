@@ -39,10 +39,10 @@ document.querySelector("#sendOtp").addEventListener("click", async function () {
 
         if (response.ok) {
             showToast("Account verification successful!", "success");
-            await delay(1500);
+            await delay(1000);
 
             showToast("Redirecting to login...", "processing");
-            await delay(1500);
+            await delay(1000);
 
             window.location.replace("/loginPage/successfulRegistration");
         } else {

@@ -13,7 +13,8 @@ def add_user_to_db(email, password, confirm_password):
     user_data = {
         "email": email,
         "password": sha_256(password),
-        "user_type": "user"
+        "user_type": "user",
+        "verified": True
     }
     users_collection.insert_one(user_data)
     close_connection(client)
@@ -29,6 +30,8 @@ def login_user_from_db(email, password):
 
     if check_user and compare_passwords(check_user['password'], sha_256(password)):
         return {"message": "Login successful"}, 200
+    elif not check_user['verified']:
+        return {"error": "User not verified"}, 401
     else:
         return {"error": "Invalid credentials"}, 401
 
