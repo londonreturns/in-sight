@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from database import store_video, query_video
-from user import add_user_to_db, login_user_from_db
-from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, clear_session
+from user import add_user_to_db, login_user_from_db, checkIfUserExists
+from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -15,8 +15,7 @@ def home():
     else:
         currentPage = "login"
         temp = is_logged_in(session)
-        return render_template('login.html', currentPage=currentPage, registrationSuccessful=False,
-                               isLoggedIn=temp)
+        return render_template('login.html', currentPage=currentPage, isLoggedIn=temp)
 
 
 @routes.route('/howItWorks')
@@ -50,15 +49,13 @@ def get_video(video_id):
 @routes.route('/loginPage')
 def login():
     currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, registrationSuccessful=False,
-                           isLoggedIn=is_logged_in(session))
+    return render_template('login.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/loginPage/successfulRegistration')
 def login_sucessful_registration():
     currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, registrationSuccessful=True,
-                           isLoggedIn=is_logged_in(session))
+    return render_template('login.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/registrationPage')
@@ -79,6 +76,15 @@ def register_user():
     email = data.get('email')
     password = data.get('password')
     confirm_password = data.get('confirmPassword')
+
+    if not validate_email(email):
+        return jsonify({"error": "Invalid email format"}), 400
+
+    if not validate_password(password):
+        return jsonify({"error": "Invalid password format"}), 400
+
+    if checkIfUserExists(email):
+        return jsonify({"error": "Email already exists"}), 400
 
     if not compare_passwords(password, confirm_password):
         return jsonify({"error": "Passwords do not match"}), 400

@@ -1,5 +1,7 @@
 import showToast from "./toast.js";
 import delay from "./delay.js";
+import validateEmail from "./emailRegex.js";
+import validatePassword from "./passwordRegex.js";
 
 document.querySelector("#registerButton").addEventListener("click", async function (event) {
     event.preventDefault();
@@ -17,6 +19,14 @@ document.querySelector("#registerButton").addEventListener("click", async functi
         password: password,
         confirmPassword: confirmPassword
     };
+
+    if (validateEmail(email) === false) {
+        showToast("Invalid email address.", "error");
+        return;
+    }else if(validatePassword(password) === false){
+        showToast("Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.", "error");
+        return;
+    }
 
     try {
         const response = await fetch("/registerUser", {
