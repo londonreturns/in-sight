@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+    In-sight - Account Verification
+{% endblock %}
+
+{% block body %}
+    <main class="min-vh">
+        <div class="otp-container">
+            <div class="otp-inputs">
+                {% for i in range(6) %}
+                    <input required type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric">
+                {% endfor %}
+            </div>
+            <button id="sendOtp" type="button" class="btn bg-dark mb-3">Verify</button>
+        </div>
+    </main>
+    {% include "toast.html" %}
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/accountVerification.js" type="module"></script>
+{% endblock %}

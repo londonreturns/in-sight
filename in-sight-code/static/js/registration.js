@@ -30,13 +30,10 @@ document.querySelector("#registerButton").addEventListener("click", async functi
         const responseData = await response.json();
 
         if (response.ok) {
-            showToast("Registration successful!", "success");
-            await delay(1500);
+            showToast("Redirecting to account verification...", "processing");
+            await delay(1000);
 
-            showToast("Redirecting to login page...", "processing");
-            await delay(1500);
-
-            window.location.replace("/loginPage");
+            window.location.replace("/accountVerification");
         } else {
             showToast(responseData.error, "error");
         }

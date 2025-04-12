@@ -36,10 +36,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 showToast("Login successful!", "success");
-                await delay(1500);
+                await delay(1000);
 
                 showToast("Redirecting to homepage...", "processing");
-                await delay(1500);
+                await delay(1000);
 
                 window.location.replace("/index");
             } else {

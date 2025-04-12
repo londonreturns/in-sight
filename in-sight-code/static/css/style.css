@@ -37,6 +37,14 @@
     color: #FFE34F;
 }
 
+.btn:active, .btn:focus{
+    color: #FFE34F;
+}
+
+.logout:hover{
+    color: #000000;
+}
+
 .btn-warning{
     background-color: rgba(255, 227, 79, 0.85);
     color: #000;
@@ -71,4 +79,39 @@
 .logout-button{
     background-color: #FFE34F;
     color: #000;
+}
+
+.otp-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    border-radius: 12px;
+    max-width: 400px;
+    margin: auto;
+}
+
+.otp-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.otp-digit {
+    width: 50px;
+    height: 60px;
+    font-size: 24px;
+    text-align: center;
+    border-radius: 8px;
+    background: #eee;
+    transition: all 0.2s ease;
+    border: 2px solid #000000;
+}
+
+.otp-digit:focus {
+    border-color: #fff;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
