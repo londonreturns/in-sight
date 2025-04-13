@@ -23,8 +23,7 @@ def add_user_to_db(email, password, confirm_password):
 
 def login_user_from_db(email, password):
     check_user = checkIfUserExists(email)
-
-    if check_user and compare_passwords(check_user['password'], sha_256(password)):
+    if check_user is not None and compare_passwords(check_user['password'], sha_256(password)):
         return {"message": "Login successful"}, 200
     elif not check_user['verified']:
         return {"error": "User not verified"}, 401
@@ -37,4 +36,7 @@ def checkIfUserExists(email):
     users_collection = db['users']
     existing_user = users_collection.find_one({"email": email})
     close_connection(client)
-    return existing_user is not None
+    if existing_user:
+        return existing_user
+    else:
+        return None
