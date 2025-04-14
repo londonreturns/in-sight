@@ -6,6 +6,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from hashlib import sha256
 from random import randint
+
+from bson import ObjectId
 from dotenv import load_dotenv
 
 
@@ -54,16 +56,14 @@ def compare_passwords(password, confirm_password):
     return True
 
 
-def clear_session(session):
-    session.pop('otp', None)
-    session.pop('user_type', None)
-
-
 def clear_user_credentials(session):
     session.pop('user_credentials', None)
     session.pop('email', None)
     session.pop('password', None)
     session.pop('confirm_password', None)
+    session.pop('otp_code', None)
+    session.pop('user_type', None)
+    session.pop('id', None)
     session.clear()
 
 
@@ -76,10 +76,23 @@ def load_smtp_credentials():
         "port": int(getenv('SMTP_PORT'))
     }
 
+
 def validate_email(email):
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.fullmatch(email_regex, email)
 
+
 def validate_password(password):
     password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,}$'
     return re.fullmatch(password_regex, password)
+
+
+def object_id_to_str(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    elif isinstance(obj, list):
+        return [str(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: object_id_to_str(value) for key, value in obj.items()}
+    else:
+        return obj

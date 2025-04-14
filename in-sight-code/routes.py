@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video
-from user import add_user_to_db, login_user_from_db, checkIfUserExists
+from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
-    clear_session, clear_user_credentials
+    clear_user_credentials, object_id_to_str
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -33,13 +33,12 @@ def upload_video():
         return jsonify({"error": error_message}), 400
 
     video = request.files['video']
-    user_email = session.get('email')
 
     if video.filename == '':
         error_message = 'No selected file'
         return jsonify({"error": error_message}), 400
 
-    video_id = store_video(video, user_email)
+    video_id = store_video(video, session)
     video_url = url_for('routes.get_video', video_id=str(video_id))
     return jsonify({"video_id": str(video_id), "video_url": video_url}), 200
 
@@ -86,7 +85,7 @@ def register_user():
     if not validate_password(password):
         return jsonify({"error": "Invalid password format"}), 400
 
-    if checkIfUserExists(email):
+    if check_if_user_exists(email):
         return jsonify({"error": "Email already exists"}), 400
 
     if not compare_passwords(password, confirm_password):
@@ -115,7 +114,7 @@ def verify_otp():
         return jsonify({"error": "Invalid OTP"}), 400
 
     add_user_to_db(session['user_credentials']['email'], session['user_credentials']['password'])
-    clear_session(session)
+    clear_user_credentials(session)
 
     return jsonify({"success": "Verified otp successfully."}), 200
 
@@ -132,9 +131,12 @@ def login_user():
 
     response, status_code = login_user_from_db(email, password)
 
+    _id = object_id_to_str(get_user_from_db(email)['_id'])
+
     if status_code % 200 == 0:
         session["user_type"] = "user"
         session["email"] = email
+        session["_id"] = _id
 
     return jsonify(response), status_code
 

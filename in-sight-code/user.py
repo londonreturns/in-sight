@@ -22,7 +22,7 @@ def add_user_to_db(email, password):
 
 
 def login_user_from_db(email, password):
-    check_user = checkIfUserExists(email)
+    check_user = check_if_user_exists(email)
     if check_user is not None and compare_passwords(check_user['password'], sha_256(password)):
         return {"message": "Login successful"}, 200
     elif check_user is None:
@@ -33,7 +33,18 @@ def login_user_from_db(email, password):
         return {"error": "Please try again. Some error occurred"}, 401
 
 
-def checkIfUserExists(email):
+def check_if_user_exists(email):
+    db, client = open_connection()
+    users_collection = db['users']
+    existing_user = users_collection.find_one({"email": email})
+    close_connection(client)
+    if existing_user:
+        return existing_user
+    else:
+        return None
+
+
+def get_user_from_db(email):
     db, client = open_connection()
     users_collection = db['users']
     existing_user = users_collection.find_one({"email": email})

@@ -2,23 +2,24 @@ from bson import ObjectId
 from flask import make_response
 import gridfs
 from database import open_connection, close_connection
-from user import checkIfUserExists
+from user import check_if_user_exists
 
 
-def store_video(video, email=None):
-    user = checkIfUserExists(email)
+def store_video(video, session):
+    user_id = check_if_user_exists(session['email'])['_id']
 
-    if user is None:
+    if user_id is None:
         return {"error": "User not found"}, 404
 
     db, client = open_connection()
     fs = gridfs.GridFS(db)
     video_id = fs.put(video, filename=video.filename)
+
     video_document = {
         "_id": video_id,
         "filename": video.filename,
         "content_type": video.content_type,
-        "user_id": user['_id']
+        "user_id": user_id
     }
     db.videos.insert_one(video_document)
     close_connection(client)
