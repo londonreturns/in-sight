@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video
 from user import add_user_to_db, login_user_from_db, checkIfUserExists
-from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password
+from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
+    clear_session, clear_user_credentials
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -9,19 +10,20 @@ routes = Blueprint('routes', __name__, static_folder='static', template_folder='
 @routes.route('/index')
 @routes.route('/')
 def home():
+    print(session)
     if "user_type" in session:
-        currentPage = "homepage"
-        return render_template('index.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
+        current_page = "homepage"
+        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
     else:
-        currentPage = "login"
+        current_page = "login"
         temp = is_logged_in(session)
-        return render_template('login.html', currentPage=currentPage, isLoggedIn=temp)
+        return render_template('login.html', currentPage=current_page, isLoggedIn=temp)
 
 
 @routes.route('/howItWorks')
 def how_it_works():
-    currentPage = "howitworks"
-    return render_template('howItWorks.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
+    current_page = "howitworks"
+    return render_template('howItWorks.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/uploadVideo', methods=['POST'])
@@ -31,12 +33,13 @@ def upload_video():
         return jsonify({"error": error_message}), 400
 
     video = request.files['video']
+    user_email = session.get('email')
 
     if video.filename == '':
         error_message = 'No selected file'
         return jsonify({"error": error_message}), 400
 
-    video_id = store_video(video)
+    video_id = store_video(video, user_email)
     video_url = url_for('routes.get_video', video_id=str(video_id))
     return jsonify({"video_id": str(video_id), "video_url": video_url}), 200
 
@@ -48,20 +51,20 @@ def get_video(video_id):
 
 @routes.route('/loginPage')
 def login():
-    currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
+    current_page = "login"
+    return render_template('login.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/loginPage/successfulRegistration')
-def login_sucessful_registration():
-    currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
+def login_successful_registration():
+    current_page = "login"
+    return render_template('login.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/registrationPage')
 def registration():
-    currentPage = "registration"
-    return render_template('registration.html', currentPage=currentPage, isLoggedIn=is_logged_in(session))
+    current_page = "registration"
+    return render_template('registration.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/registerUser', methods=['POST'])
@@ -112,6 +115,8 @@ def verify_otp():
         return jsonify({"error": "Invalid OTP"}), 400
 
     add_user_to_db(session['user_credentials']['email'], session['user_credentials']['password'])
+    clear_session(session)
+
     return jsonify({"success": "Verified otp successfully."}), 200
 
 
@@ -129,15 +134,14 @@ def login_user():
 
     if status_code % 200 == 0:
         session["user_type"] = "user"
+        session["email"] = email
 
     return jsonify(response), status_code
 
 
 @routes.route('/logout', methods=['GET', 'POST'])
 def logout():
-    if "user_type" in session:
-        session.pop('user_type', None)
-        return login()
-    currentPage = "login"
-    return render_template('login.html', currentPage=currentPage, registrationSuccessful=False,
+    clear_user_credentials(session)
+    current_page = "login"
+    return render_template('login.html', currentPage=current_page, registrationSuccessful=False,
                            isLoggedIn=is_logged_in(session))

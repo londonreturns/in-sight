@@ -55,9 +55,16 @@ def compare_passwords(password, confirm_password):
 
 
 def clear_session(session):
-    session.pop('user_credentials', None)
     session.pop('otp', None)
     session.pop('user_type', None)
+
+
+def clear_user_credentials(session):
+    session.pop('user_credentials', None)
+    session.pop('email', None)
+    session.pop('password', None)
+    session.pop('confirm_password', None)
+    session.clear()
 
 
 def load_smtp_credentials():
