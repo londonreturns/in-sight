@@ -1,3 +1,4 @@
+import os
 import re
 from os import getenv
 from smtplib import SMTP_SSL
@@ -28,7 +29,10 @@ def send_user_otp(receiver_email, otp_code):
 
     subject = "In-Sight OTP Verification"
 
-    with open("html_templates/otp_template.html", "r") as file:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    template_dir = os.path.join(BASE_DIR, 'html_templates', 'otp_template.html')
+
+    with open(template_dir, "r") as file:
         html_content = file.read().replace("{{ otp_code }}", otp_code)
 
     message = MIMEMultipart("alternative")
