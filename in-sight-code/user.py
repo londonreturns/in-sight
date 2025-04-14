@@ -2,7 +2,7 @@ from database import open_connection, close_connection
 from helper import sha_256, compare_passwords
 
 
-def add_user_to_db(email, password, confirm_password):
+def add_user_to_db(email, password):
     db, client = open_connection()
     users_collection = db['users']
 
@@ -25,10 +25,12 @@ def login_user_from_db(email, password):
     check_user = checkIfUserExists(email)
     if check_user is not None and compare_passwords(check_user['password'], sha_256(password)):
         return {"message": "Login successful"}, 200
+    elif check_user is None:
+        return {"error": "User not found. Please check your credentials."}, 404
     elif not check_user['verified']:
         return {"error": "User not verified"}, 401
     else:
-        return {"error": "Invalid credentials"}, 401
+        return {"error": "Please try again. Some error occurred"}, 401
 
 
 def checkIfUserExists(email):
