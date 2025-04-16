@@ -1,8 +1,11 @@
+from http.client import responses
+
+import requests
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
-    clear_user_credentials, object_id_to_str
+    clear_user_credentials, object_id_to_str, mock_data
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -10,7 +13,6 @@ routes = Blueprint('routes', __name__, static_folder='static', template_folder='
 @routes.route('/index')
 @routes.route('/')
 def home():
-    print(session)
     if "user_type" in session:
         current_page = "homepage"
         return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
@@ -29,18 +31,41 @@ def how_it_works():
 @routes.route('/uploadVideo', methods=['POST'])
 def upload_video():
     if 'video' not in request.files:
-        error_message = 'No video file uploaded'
-        return jsonify({"error": error_message}), 400
+        return jsonify({"error": "No video file uploaded"}), 400
 
     video = request.files['video']
 
     if video.filename == '':
-        error_message = 'No selected file'
-        return jsonify({"error": error_message}), 400
+        return jsonify({"error": "No selected file"}), 400
+
+    video.stream.seek(0)
 
     video_id = store_video(video, session)
     video_url = url_for('routes.get_video', video_id=str(video_id))
-    return jsonify({"video_id": str(video_id), "video_url": video_url}), 200
+
+    # choose = "mock"
+    choose = "summary"
+
+    if choose == "mock":
+        response = mock_data()
+    else:
+        video.stream.seek(0)
+
+        response = requests.post(
+            'http://127.0.0.1:5001/summarize',
+            files={'video': (video.filename or "uploaded_video.mp4", video.stream, video.mimetype or "video/mp4")}
+        )
+
+        if response.status_code == 200:
+            response = response.json()
+        else:
+            response = {"error": "Failed to summarize video"}
+
+    return jsonify({
+        "video_id": str(video_id),
+        "video_url": video_url,
+        "data": response
+    }), 200
 
 
 @routes.route('/video/<video_id>')
