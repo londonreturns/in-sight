@@ -156,6 +156,9 @@ def login_user():
 
     response, status_code = login_user_from_db(email, password)
 
+    if response["error"] == "User not found. Please check your credentials.":
+        return jsonify(response), status_code
+
     _id = object_id_to_str(get_user_from_db(email)['_id'])
 
     if status_code % 200 == 0:
