@@ -35,3 +35,25 @@ def query_video(video_id):
     response.headers['Content-Disposition'] = f'attachment; filename={video_file.filename}'
     close_connection(client)
     return response
+
+
+
+def query_all_videos(user_id):
+    db, client = open_connection()
+    try:
+        videos_collection = db['videos']
+        videos = videos_collection.find({"user_id": ObjectId(user_id)})
+        video_list = []
+        for video in videos:
+            video_info = {
+                "id": str(video["_id"]),
+                "filename": video["filename"],
+                "content_type": video["content_type"]
+            }
+            video_list.append(video_info)
+        return video_list
+    except Exception as e:
+        print(f"An error occurred while querying videos: {e}")
+        return []
+    finally:
+        close_connection(client)

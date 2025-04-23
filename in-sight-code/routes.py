@@ -1,8 +1,6 @@
-from http.client import responses
-
 import requests
 from flask import Blueprint, render_template, request, jsonify, url_for, session
-from video import store_video, query_video
+from video import store_video, query_video, query_all_videos
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str, mock_data
@@ -43,8 +41,8 @@ def upload_video():
     video_id = store_video(video, session)
     video_url = url_for('routes.get_video', video_id=str(video_id))
 
-    # choose = "mock"
-    choose = "summary"
+    choose = "mock"
+    # choose = "summary"
 
     if choose == "mock":
         response = mock_data()
@@ -156,8 +154,8 @@ def login_user():
 
     response, status_code = login_user_from_db(email, password)
 
-    if response["error"] == "User not found. Please check your credentials.":
-        return jsonify(response), status_code
+    if "error" in response.keys():
+        return jsonify({"error": response["error"]}), 400
 
     _id = object_id_to_str(get_user_from_db(email)['_id'])
 
@@ -175,3 +173,12 @@ def logout():
     current_page = "login"
     return render_template('login.html', currentPage=current_page, registrationSuccessful=False,
                            isLoggedIn=is_logged_in(session))
+
+
+@routes.route('/getVideosOfUser/', methods=['GET'])
+def get_videos_of_user():
+    data = request.get_json()
+
+    user_id = data.get('user_id')
+
+    return query_all_videos(user_id)
