@@ -13,7 +13,7 @@ routes = Blueprint('routes', __name__, static_folder='static', template_folder='
 def home():
     if "user_type" in session:
         current_page = "homepage"
-        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
+        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session), videos=query_all_videos(user_id=session['_id']))
     else:
         current_page = "login"
         temp = is_logged_in(session)
