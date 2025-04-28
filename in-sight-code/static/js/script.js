@@ -78,6 +78,36 @@ async function updateVideoList() {
     }
 }
 
+document.addEventListener("click", async (event) => {
+    if (event.target.closest(".delete-video-btn")) {
+        const button = event.target.closest(".delete-video-btn");
+        const videoId = button.getAttribute("data-id");
+
+        showModal(
+            "Confirm Deletion",
+            "Are you sure you want to delete this video?",
+            "Delete",
+            async () => {
+                try {
+                    const response = await fetch(`/deleteVideo/${videoId}`, {
+                        method: "DELETE",
+                    });
+
+                    if (response.ok) {
+                        showToast("Video deleted successfully.", "success");
+                        await updateVideoList();
+                    } else {
+                        const result = await response.json();
+                        showToast(result.error || "Error deleting video.", "error");
+                    }
+                } catch (error) {
+                    showToast("An error occurred while deleting the video.", "error");
+                }
+            }
+        );
+    }
+});
+
 function getAssistantMessage(input) {
     const parts = input.split("ASSISTANT:");
     return parts.length > 1 ? parts[1].trim() : "";

@@ -158,3 +158,21 @@ def query_all_videos(user_id):
 
 def get_updated_video_list_from_db(user_id):
     return query_all_videos(user_id)
+
+
+def delete_video_from_db(session, video_id):
+    if "_id" not in session:
+        return {"error": "Not logged in"}, 403
+
+    db, client = open_connection()
+    try:
+        video = db.videos.find_one({"_id": ObjectId(video_id), "user_id": ObjectId(session["_id"])})
+        if not video:
+            return {"error": "Video not found or unauthorized"}, 404
+
+        db.videos.delete_one({"_id": ObjectId(video_id)})
+        close_connection(client)
+        return {"message": "Video deleted successfully"}, 200
+    except Exception as e:
+        close_connection(client)
+        return {"error": "An error occurred while deleting the video"}, 500

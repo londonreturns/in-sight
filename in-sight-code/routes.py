@@ -1,6 +1,7 @@
 import requests
 from flask import Blueprint, render_template, request, jsonify, url_for, session
-from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db
+from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
+    delete_video_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str, mock_data
@@ -197,3 +198,9 @@ def get_updated_video_list():
 
     videos = get_updated_video_list_from_db(user_id=session['_id'])
     return render_template('partials/video_list.html', videos=videos)
+
+
+@routes.route('/deleteVideo/<video_id>', methods=['DELETE'])
+def delete_video(video_id):
+    response, status = delete_video_from_db(session, video_id)
+    return jsonify(response), status
