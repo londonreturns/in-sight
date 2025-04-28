@@ -11,17 +11,11 @@ async function sendVideo(file) {
             body: formData
         });
 
-        const data = await response.json();
+        await response.json();
 
         if (response.ok) {
             showToast("Video uploaded successfully.", 'success');
-            let columnLeft = document.querySelector(".column-left");
-            columnLeft.innerHTML = `
-                <video width="300" controls muted>
-                    <source src="/video/${data.video_id}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            ` + "<br><br>" + getAssistantMessage(data.data);
+
         } else {
             showToast("Error uploading video.", "error");
         }
@@ -31,7 +25,7 @@ async function sendVideo(file) {
     }
 }
 
-document.querySelector("#uploadButton").addEventListener("click", function () {
+document.querySelector("#uploadButton").addEventListener("click", async function () {
     let fileInput = document.querySelector("#videoFile");
     let file = fileInput.files[0];
 
@@ -41,7 +35,7 @@ document.querySelector("#uploadButton").addEventListener("click", function () {
         showToast("Please upload a valid video file.", "error");
     } else {
         showToast(`Preparing to upload: ${file.name}`, "processing");
-        sendVideo(file);
+        await sendVideo(file);
     }
 });
 
@@ -57,7 +51,7 @@ document.querySelector("#logoutButton").addEventListener("click", function (even
             fetch("/logout", {method: "POST"})
                 .then(response => {
                     if (response.ok) {
-                        window.location.href = "/loginPage"; // Redirect to login page
+                        window.location.href = "/loginPage";
                     } else {
                         console.error("Logout failed");
                     }

@@ -115,3 +115,25 @@
     background: #fff;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
+
+#videoList .card{
+    position:relative;
+}
+#videoList img{
+    width: 100%;
+    height: auto;
+}
+.card-actions{
+}
+.card-actions .btn{
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    height: 32px;
+    width: 32px;
+    padding: 0;
+}
+
+.card-actions .btn-success{
+    right: 58px
+}

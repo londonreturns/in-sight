@@ -1,6 +1,6 @@
 import requests
 from flask import Blueprint, render_template, request, jsonify, url_for, session
-from video import store_video, query_video, query_all_videos
+from video import store_video, query_video, query_all_videos, get_thumbnail_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str, mock_data
@@ -182,3 +182,8 @@ def get_videos_of_user():
     user_id = data.get('user_id')
 
     return query_all_videos(user_id)
+
+
+@routes.route('/getThumbnail/<video_id>', methods=['GET'])
+def get_thumbnail(video_id):
+    return get_thumbnail_from_db(video_id)
