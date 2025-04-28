@@ -1,11 +1,11 @@
-.logo{
+.logo {
     width: 100px;
     height: 100px;
     margin: 0 auto;
     display: block;
 }
 
-.logo{
+.logo {
     width: 100px;
     height: 100px;
     margin: 0 auto;
@@ -14,43 +14,43 @@
     border: 2px solid #000;
 }
 
-.title{
+.title {
     font-family: 'Roboto', sans-serif;
     font-weight: bold;
 }
 
-.column-left{
+.column-left {
     height: 100px;
 }
 
-.column-right{
+.column-right {
     width: 50px;
     text-align: left;
     font-weight: 600;
 }
 
-.btn{
+.btn {
     color: #ffffff;
 }
 
-.btn:hover{
+.btn:hover {
     color: #FFE34F;
 }
 
-.btn:active, .btn:focus{
+.btn:active, .btn:focus {
     color: #FFE34F;
 }
 
-.logout:hover{
+.logout:hover {
     color: #000000;
 }
 
-.btn-warning{
+.btn-warning {
     background-color: rgba(255, 227, 79, 0.85);
     color: #000;
 }
 
-.min-vh{
+.min-vh {
     min-height: calc(100vh - 486px);
     display: flex;
     align-items: center;
@@ -76,7 +76,7 @@
     color: #d1ecf1;
 }
 
-.logout-button{
+.logout-button {
     background-color: #FFE34F;
     color: #000;
 }
@@ -116,16 +116,19 @@
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
-#videoList .card{
-    position:relative;
+#videoList .card {
+    position: relative;
 }
-#videoList img{
+
+#videoList img {
     width: 100%;
     height: auto;
 }
-.card-actions{
+
+.card-actions {
 }
-.card-actions .btn{
+
+.card-actions .btn {
     position: absolute;
     top: 16px;
     right: 16px;
@@ -134,6 +137,14 @@
     padding: 0;
 }
 
-.card-actions .btn-success{
+.card-actions .btn-success {
     right: 58px
+}
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
 }
