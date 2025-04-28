@@ -20,9 +20,17 @@
             </div>
 
             <div class="row py-5" id="videoList">
-                {% for video in videos %}
-                    {% include "video_card.html" with context %}
-                {% endfor %}
+                {% if videos|length == 0 %}
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            No videos found. Please upload a video.
+                        </div>
+                    </div>
+                {% else %}
+                    {% for video in videos %}
+                        {% include "video_card.html" with context %}
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </main>

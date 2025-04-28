@@ -1,6 +1,6 @@
 import requests
 from flask import Blueprint, render_template, request, jsonify, url_for, session
-from video import store_video, query_video, query_all_videos, get_thumbnail_from_db
+from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str, mock_data
@@ -13,7 +13,8 @@ routes = Blueprint('routes', __name__, static_folder='static', template_folder='
 def home():
     if "user_type" in session:
         current_page = "homepage"
-        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session), videos=query_all_videos(user_id=session['_id']))
+        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session),
+                               videos=query_all_videos(user_id=session['_id']))
     else:
         current_page = "login"
         temp = is_logged_in(session)
@@ -175,7 +176,7 @@ def logout():
                            isLoggedIn=is_logged_in(session))
 
 
-@routes.route('/getVideosOfUser/', methods=['GET'])
+@routes.route('/getVideosOfUser', methods=['GET'])
 def get_videos_of_user():
     data = request.get_json()
 
@@ -187,3 +188,12 @@ def get_videos_of_user():
 @routes.route('/getThumbnail/<video_id>', methods=['GET'])
 def get_thumbnail(video_id):
     return get_thumbnail_from_db(video_id)
+
+
+@routes.route('/getUpdatedVideoList')
+def get_updated_video_list():
+    if "_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    videos = get_updated_video_list_from_db(user_id=session['_id'])
+    return render_template('partials/video_list.html', videos=videos)
