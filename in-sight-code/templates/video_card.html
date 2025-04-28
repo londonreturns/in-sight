@@ -2,7 +2,7 @@
     <div class="card mb-3 d-flex flex-row align-items-center justify-content-between">
         <div class="w-100">
             <img src="/getThumbnail/{{ video.id }}" alt="Video Thumbnail"
-                 style="width: 100%; height: 210px; border-radius: 10px; object-fit: cover;">
+                 loading="lazy" style="width: 100%; height: 210px; border-radius: 10px; object-fit: cover;">
             <div class="p-3">
                 <h5 class="mb-1">
                     {{ video.filename[:30] + '...' if video.filename|length > 30 else video.filename }}

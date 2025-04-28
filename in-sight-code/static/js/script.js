@@ -11,13 +11,15 @@ async function sendVideo(file) {
             body: formData
         });
 
-        await response.json();
+        const result = await response.json();
 
         if (response.ok) {
             showToast("Video uploaded successfully.", 'success');
+            await updateVideoList();
+            document.getElementById('videoFile').value = '';
 
         } else {
-            showToast("Error uploading video.", "error");
+            showToast(result.error || "Error uploading video.", "error");
         }
 
     } catch (error) {
@@ -60,6 +62,21 @@ document.querySelector("#logoutButton").addEventListener("click", function (even
         }
     );
 });
+
+async function updateVideoList() {
+    try {
+        const response = await fetch("/getUpdatedVideoList");
+
+        if (response.ok) {
+            document.querySelector("#videoList").innerHTML = await response.text();
+        } else {
+            showToast("Failed to fetch updated videos", "error");
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("Error updating video list", "error");
+    }
+}
 
 function getAssistantMessage(input) {
     const parts = input.split("ASSISTANT:");
