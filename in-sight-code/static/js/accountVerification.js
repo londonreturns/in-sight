@@ -41,7 +41,7 @@ document.querySelector("#sendOtp").addEventListener("click", async function () {
             showToast("Account verification successful!", "success");
             await delay(1000);
 
-            showToast("Redirecting to login...", "processing");
+            showToast("Redirecting to login...", "processing", 99999);
             await delay(1000);
 
             window.location.replace("/loginPage/successfulRegistration");
