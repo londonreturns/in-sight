@@ -53,7 +53,9 @@
 .min-vh {
     min-height: calc(100vh - 486px);
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 .login {
@@ -148,3 +150,18 @@
 .card:hover {
     transform: scale(1.05);
 }
+
+.delete-video-btn{
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    height: 32px;
+    width: 32px;
+    padding: 0;
+    background-color: #e18f8f;
+}
+
+.delete-video-btn:hover {
+    background-color: #e66060;
+}
+
