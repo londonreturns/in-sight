@@ -150,12 +150,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
 
         if (!response.ok) {
-            showToast(response.error || "Error deleting video.", "error");
+            showToast(response.error || "Error fetching videos.", "error");
+            return;
         }
 
         const data = await response.json();
 
         loadingSpinner.style.display = 'none';
+
+        if (data.length === 0) {
+            videoListContainer.innerHTML = '<div class="alert alert-info text-center">No videos found. Please upload a video.</div>';
+            return;
+        }
+
         videoListContainer.innerHTML = '';
 
         data.forEach(video => {
