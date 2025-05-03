@@ -1,5 +1,6 @@
-import requests
+from requests import post
 from flask import Blueprint, render_template, request, jsonify, url_for, session
+# from extensions import cache
 from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
     delete_video_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
@@ -14,8 +15,7 @@ routes = Blueprint('routes', __name__, static_folder='static', template_folder='
 def home():
     if "user_type" in session:
         current_page = "homepage"
-        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session),
-                               videos=query_all_videos(user_id=session['_id']))
+        return render_template('index.html', currentPage=current_page, isLoggedIn=is_logged_in(session), videos=[])
     else:
         current_page = "login"
         temp = is_logged_in(session)
@@ -43,15 +43,17 @@ def upload_video():
     video_id = store_video(video, session)
     video_url = url_for('routes.get_video', video_id=str(video_id))
 
+    # cache.delete('/index')
+    # cache.delete('/')
+
     choose = "mock"
-    # choose = "summary"
 
     if choose == "mock":
         response = mock_data()
     else:
         video.stream.seek(0)
 
-        response = requests.post(
+        response = post(
             'http://127.0.0.1:5001/summarize',
             files={'video': (video.filename or "uploaded_video.mp4", video.stream, video.mimetype or "video/mp4")}
         )
@@ -66,6 +68,19 @@ def upload_video():
         "video_url": video_url,
         "data": response
     }), 200
+
+
+@routes.route('/deleteVideo/<video_id>', methods=['DELETE'])
+def delete_video(video_id):
+    if "_id" not in session:
+        logout()
+
+    response, status = delete_video_from_db(session, video_id)
+
+    # cache.delete('/index')
+    # cache.delete('/')
+
+    return jsonify(response), status
 
 
 @routes.route('/video/<video_id>')
@@ -179,11 +194,12 @@ def logout():
 
 @routes.route('/getVideosOfUser', methods=['GET'])
 def get_videos_of_user():
-    data = request.get_json()
+    if "_id" not in session:
+        return jsonify({"error": "User not logged in"}), 400
 
-    user_id = data.get('user_id')
-
-    return query_all_videos(user_id)
+    user_id = session["_id"]
+    videos = query_all_videos(user_id)
+    return jsonify(videos), 200
 
 
 @routes.route('/getThumbnail/<video_id>', methods=['GET'])
@@ -194,13 +210,7 @@ def get_thumbnail(video_id):
 @routes.route('/getUpdatedVideoList')
 def get_updated_video_list():
     if "_id" not in session:
-        return jsonify({"error": "Not logged in"}), 403
+        logout()
 
     videos = get_updated_video_list_from_db(user_id=session['_id'])
     return render_template('partials/video_list.html', videos=videos)
-
-
-@routes.route('/deleteVideo/<video_id>', methods=['DELETE'])
-def delete_video(video_id):
-    response, status = delete_video_from_db(session, video_id)
-    return jsonify(response), status

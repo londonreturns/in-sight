@@ -36,7 +36,7 @@ document.querySelector("#uploadButton").addEventListener("click", async function
     } else if (!file.type.startsWith("video/")) {
         showToast("Please upload a valid video file.", "error");
     } else {
-        showToast(`Preparing to upload: ${file.name}`, "processing");
+        showToast(`Preparing to upload: ${file.name}`, "processing", 999999);
         await sendVideo(file);
     }
 });
@@ -49,7 +49,6 @@ document.querySelector("#logoutButton").addEventListener("click", function (even
         "Are you sure you want to log out?",
         "Logout",
         () => {
-            // Perform logout action
             fetch("/logout", {method: "POST"})
                 .then(response => {
                     if (response.ok) {
@@ -88,10 +87,14 @@ document.addEventListener("click", async (event) => {
             "Are you sure you want to delete this video?",
             "Delete",
             async () => {
+
                 try {
                     const response = await fetch(`/deleteVideo/${videoId}`, {
                         method: "DELETE",
                     });
+
+
+                    showToast("Deleting video.", "processing", 999999);
 
                     if (response.ok) {
                         showToast("Video deleted successfully.", "success");
@@ -105,6 +108,91 @@ document.addEventListener("click", async (event) => {
                 }
             }
         );
+    }
+});
+
+document.getElementById('dynamicModal').addEventListener('hidden.bs.modal', () => {
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach((backdrop) => backdrop.remove());
+});
+
+document.addEventListener("click", (event) => {
+    const videoCard = event.target.closest(".video-card");
+    if (videoCard) {
+        const videoId = videoCard.getAttribute("data-id");
+
+        const modalTitle = document.getElementById("dynamicModalLabel");
+        const modalBody = document.querySelector("#dynamicModal .modal-body");
+
+        modalTitle.textContent = "Video Details";
+        modalBody.innerHTML = `
+            <p>Video ID: ${videoId}</p>
+            <p>Additional video details can go here.</p>
+        `;
+
+        const modal = new bootstrap.Modal(document.getElementById("dynamicModal"));
+        modal.show();
+    }
+});
+
+document.addEventListener("DOMContentLoaded", async function () {
+    const videoListContainer = document.getElementById('videoList');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    loadingSpinner.style.display = 'block';
+
+    try {
+        const response = await fetch('/getVideosOfUser', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            showToast(response.error || "Error fetching videos.", "error");
+            return;
+        }
+
+        const data = await response.json();
+
+        loadingSpinner.style.display = 'none';
+
+        if (data.length === 0) {
+            videoListContainer.innerHTML = '<div class="alert alert-info text-center">No videos found. Please upload a video.</div>';
+            return;
+        }
+
+        videoListContainer.innerHTML = '';
+
+        data.forEach(video => {
+            const videoCard = `
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card mb-3 d-flex flex-row align-items-center justify-content-between video-card" data-id="${video.id}">
+                    <div class="w-100">
+                        <img src="/getThumbnail/${video.id}" alt="Video Thumbnail"
+                             loading="lazy" style="width: 100%; height: 210px; border-radius: 10px; object-fit: cover;">
+                        <div class="p-3">
+                            <h5 class="mb-1">
+                                ${video.filename.length > 30 ? video.filename.substring(0, 30) + '...' : video.filename}
+                            </h5>
+                            <small>Date: ${video.date_added}</small>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn delete-video-btn" data-id="${video.id}">
+                            <img class="delete-svg" src="static/images/ic_baseline-delete.svg" alt="">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+            videoListContainer.insertAdjacentHTML('beforeend', videoCard);
+        });
+    } catch (error) {
+        console.error('Error fetching videos:', error);
+        loadingSpinner.style.display = 'none';
+        videoListContainer.innerHTML = '<div class="alert alert-danger text-center">Failed to load videos.</div>';
     }
 });
 

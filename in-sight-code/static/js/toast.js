@@ -1,8 +1,8 @@
-function showToast(text, type = "success") {
+function showToast(text, type = "success", delay = 5000) {
     let toastMessage = document.querySelector("#toastMessage");
-    let toastElement = new bootstrap.Toast(document.getElementById("liveToast"));
+    let toastElement = new bootstrap.Toast(document.getElementById("liveToast"), { delay: delay });
 
-    toastMessage.innerText = text;
+    toastMessage.innerHTML = text;
 
     let toastContainer = document.getElementById("liveToast");
     toastContainer.classList.remove("bg-success", "bg-danger", "bg-primary", "text-light-success", "text-light-error", "text-light-processing");

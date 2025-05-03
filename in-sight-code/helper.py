@@ -1,15 +1,21 @@
-import os
-import re
+from os import path, remove
+from re import fullmatch
 from os import getenv
 from smtplib import SMTP_SSL
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from hashlib import sha256
 from random import randint
-
 from bson import ObjectId
 from dotenv import load_dotenv
 from random import choice
+from database import open_connection, close_connection
+from tempfile import NamedTemporaryFile
+from io import BytesIO
+from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_POS_MSEC, CAP_PROP_POS_FRAMES, cvtColor, \
+    COLOR_BGR2RGB, resize
+from PIL import Image
+from gridfs import GridFS
 
 
 def sha_256(string):
@@ -32,8 +38,8 @@ def send_user_otp(receiver_email, otp_code):
 
     subject = "In-Sight OTP Verification"
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    template_dir = os.path.join(BASE_DIR, 'html_templates', 'otp_template.html')
+    BASE_DIR = path.dirname(path.abspath(__file__))
+    template_dir = path.join(BASE_DIR, 'html_templates', 'otp_template.html')
 
     with open(template_dir, "r") as file:
         html_content = file.read().replace("{{ otp_code }}", otp_code)
@@ -80,12 +86,12 @@ def load_smtp_credentials():
 
 def validate_email(email):
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.fullmatch(email_regex, email)
+    return fullmatch(email_regex, email)
 
 
 def validate_password(password):
     password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,}$'
-    return re.fullmatch(password_regex, password)
+    return fullmatch(password_regex, password)
 
 
 def object_id_to_str(obj):
@@ -97,6 +103,61 @@ def object_id_to_str(obj):
         return {key: object_id_to_str(value) for key, value in obj.items()}
     else:
         return obj
+
+
+def generate_thumbnail(video_id):
+    db, client = open_connection()
+    fs = GridFS(db)
+    video_file = fs.get(ObjectId(video_id))
+
+    video_bytes = video_file.read()
+
+    with NamedTemporaryFile(delete=False) as temp_video_file:
+        temp_video_file.write(video_bytes)
+        temp_video_path = temp_video_file.name
+
+    video = VideoCapture(temp_video_path)
+
+    if not video.isOpened():
+        return {"error": "Failed to open video."}, 500
+
+    fps = video.get(CAP_PROP_FPS)
+    frame_count = int(video.get(CAP_PROP_FRAME_COUNT))
+    video_length = frame_count / fps if fps > 0 else 0
+
+    if video_length > 1:
+        video.set(CAP_PROP_POS_MSEC, 1000)
+    else:
+        video.set(CAP_PROP_POS_FRAMES, 0)
+
+    ret, frame = video.read()
+    if not ret:
+        return {"error": "Failed to read the video frame."}, 500
+
+    thumbnail = resize(frame, (410, 200))
+
+    thumbnail_rgb = cvtColor(thumbnail, COLOR_BGR2RGB)
+
+    pil_image = Image.fromarray(thumbnail_rgb)
+
+    thumbnail_io = BytesIO()
+    pil_image.save(thumbnail_io, format="PNG")
+    thumbnail_io.seek(0)
+
+    thumbnail_id = fs.put(thumbnail_io, filename=f"{video_id}_thumbnail.png")
+
+    db.videos.update_one(
+        {"_id": ObjectId(video_id)},
+        {"$set": {"thumbnail_id": thumbnail_id}}
+    )
+
+    video.release()
+    remove(temp_video_path)
+
+    close_connection(client)
+
+    return {"message": "Thumbnail generated successfully", "thumbnail_id": str(thumbnail_id)}
+
 
 def mock_data():
     mock_responses = [

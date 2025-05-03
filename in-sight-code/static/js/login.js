@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 showToast("Login successful!", "success");
                 await delay(1000);
 
-                showToast("Redirecting to homepage...", "processing");
+                showToast("Redirecting to homepage...", "processing", 99999);
                 await delay(1000);
 
                 window.location.replace("/index");

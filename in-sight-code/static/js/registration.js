@@ -40,7 +40,7 @@ document.querySelector("#registerButton").addEventListener("click", async functi
         const responseData = await response.json();
 
         if (response.ok) {
-            showToast("Redirecting to account verification...", "processing");
+            showToast("Redirecting to account verification...", "processing", 999999);
             await delay(1000);
 
             window.location.replace("/accountVerification");
