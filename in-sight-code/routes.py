@@ -1,6 +1,5 @@
 from requests import post
 from flask import Blueprint, render_template, request, jsonify, url_for, session
-# from extensions import cache
 from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
     delete_video_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
@@ -43,9 +42,6 @@ def upload_video():
     video_id = store_video(video, session)
     video_url = url_for('routes.get_video', video_id=str(video_id))
 
-    # cache.delete('/index')
-    # cache.delete('/')
-
     choose = "mock"
 
     if choose == "mock":
@@ -76,9 +72,6 @@ def delete_video(video_id):
         logout()
 
     response, status = delete_video_from_db(session, video_id)
-
-    # cache.delete('/index')
-    # cache.delete('/')
 
     return jsonify(response), status
 
