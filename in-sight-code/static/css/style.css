@@ -165,3 +165,21 @@
     background-color: #e66060;
 }
 
+/* Style for the button group */
+.btn-group .btn {
+    font-size: 24px; /* Make the text larger */
+    padding: 15px 30px; /* Increase padding for bigger buttons */
+    border: 2px solid black; /* Set border color to black */
+    color: black; /* Set text color to black */
+    background-color: transparent; /* Make background transparent */
+}
+
+/* Optional: Styling for the 'keyboard-controls-box' to center the content */
+.keyboard-controls-box {
+    text-align: center;
+}
+
+/* Styling for the button hover effect */
+.btn-group .btn:hover {
+    background-color: #f8f9fa; /* Light background on hover */
+}
