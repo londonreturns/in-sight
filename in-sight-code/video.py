@@ -140,6 +140,12 @@ def get_updated_video_list_from_db(user_id):
     return query_all_videos(user_id)
 
 
+def delete_gridfs_file_and_chunks(db, file_id):
+    """Delete a file and its chunks from GridFS."""
+    db.fs.files.delete_one({"_id": ObjectId(file_id)})
+    db.fs.chunks.delete_many({"files_id": ObjectId(file_id)})
+
+
 def delete_video_from_db(session, video_id):
     db, client = open_connection()
     fs = GridFS(db)
@@ -148,14 +154,25 @@ def delete_video_from_db(session, video_id):
         if not video:
             return {"error": "Video not found or unauthorized"}, 404
 
-        # Check if the video has a summarized video
+        # Delete summarized video and its chunks if present
         if "summarized_video_id" in video:
-            # Delete the summarized video from GridFS
             try:
-                fs.delete(ObjectId(video["summarized_video_id"]))
+                delete_gridfs_file_and_chunks(db, video["summarized_video_id"])
             except Exception as e:
                 print(f"Error deleting summarized video: {e}")
-                # Continue with deleting the video even if deleting the summary fails
+
+        # Delete thumbnail and its chunks if present
+        if "thumbnail_id" in video:
+            try:
+                delete_gridfs_file_and_chunks(db, video["thumbnail_id"])
+            except Exception as e:
+                print(f"Error deleting thumbnail: {e}")
+
+        # Delete the video file and its chunks
+        try:
+            delete_gridfs_file_and_chunks(db, video_id)
+        except Exception as e:
+            print(f"Error deleting video file: {e}")
 
         # Delete the video document from the database
         db.videos.delete_one({"_id": ObjectId(video_id)})
@@ -314,3 +331,5 @@ def update_video_filename(video_id, new_filename):
         print(f"Error updating video filename: {e}")
         close_connection(client)
         return {"error": f"An error occurred while updating the filename: {str(e)}"}, 500
+
+
