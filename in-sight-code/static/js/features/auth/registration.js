@@ -1,10 +1,12 @@
-import showToast from "./toast.js";
-import delay from "./delay.js";
-import validateEmail from "./emailRegex.js";
-import validatePassword from "./passwordRegex.js";
+import showToast from "../../modules/toast.js";
+import delay from "../../modules/delay.js";
+import validateEmail from "../../modules/emailRegex.js";
+import validatePassword from "../../modules/passwordRegex.js";
 
 document.querySelector("#registerButton").addEventListener("click", async function (event) {
     event.preventDefault();
+
+    const registerButton = this;
 
     let email = document.querySelector("#email").value;
     let password = document.querySelector("#password").value;
@@ -28,6 +30,9 @@ document.querySelector("#registerButton").addEventListener("click", async functi
         return;
     }
 
+    registerButton.disabled = true;
+    registerButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registering...';
+
     try {
         const response = await fetch("/registerUser", {
             method: "POST",
@@ -46,10 +51,14 @@ document.querySelector("#registerButton").addEventListener("click", async functi
             window.location.replace("/accountVerification");
         } else {
             showToast(responseData.error, "error");
+            registerButton.disabled = false;
+            registerButton.textContent = "Submit";
         }
 
     } catch (error) {
         showToast('An error occurred.', "error");
+        registerButton.disabled = false;
+        registerButton.textContent = "Submit";
     }
 });
 

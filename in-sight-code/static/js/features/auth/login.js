@@ -1,5 +1,5 @@
-import showToast from "./toast.js";
-import delay from "./delay.js";
+import showToast from "../../modules/toast.js";
+import delay from "../../modules/delay.js";
 
 document.addEventListener("DOMContentLoaded", function () {
     let toastElement = document.getElementById("registrationToast");
@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("button[type='submit']").addEventListener("click", async function (event) {
         event.preventDefault();
 
+        const submitButton = this;
+
         let email = document.querySelector("#exampleInputEmail1").value;
         let password = document.querySelector("#exampleInputPassword1").value;
 
@@ -17,6 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
             showToast("Email and password are required.", "error");
             return;
         }
+
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Logging in...';
 
         let data = {
             email: email,
@@ -44,10 +49,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.replace("/index");
             } else {
                 showToast(responseData.error || "Invalid login credentials.", "error");
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit";
             }
         } catch (error) {
             showToast("An error occurred while logging in.", "error");
+            submitButton.disabled = false;
+            submitButton.textContent = "Submit";
         }
     });
 });
-

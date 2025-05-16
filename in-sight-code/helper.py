@@ -8,7 +8,6 @@ from hashlib import sha256
 from random import randint
 from bson import ObjectId
 from dotenv import load_dotenv
-from random import choice
 from database import open_connection, close_connection
 from tempfile import NamedTemporaryFile
 from io import BytesIO
@@ -157,23 +156,3 @@ def generate_thumbnail(video_id):
     close_connection(client)
 
     return {"message": "Thumbnail generated successfully", "thumbnail_id": str(thumbnail_id)}
-
-
-def mock_data():
-    mock_responses = [
-        "The video covers the basics of quantum computing, explaining qubits, superposition, and entanglement in simple terms.",
-        "In the video, the speaker discusses the impact of social media on mental health, with expert interviews and recent studies.",
-        "This video is a beginner’s guide to investing, covering stocks, bonds, and how to build a diversified portfolio.",
-        "The video explores the history of the Roman Empire, from its rise with Julius Caesar to its fall in the 5th century.",
-        "It’s a documentary-style video about space exploration, highlighting major NASA missions and the future of Mars colonization.",
-        "The video is a tutorial on how to cook a classic Italian lasagna, with step-by-step instructions and cooking tips.",
-        "It’s a motivational talk about building discipline, featuring personal anecdotes and practical strategies for self-improvement.",
-        "The video gives an overview of AI in healthcare, including applications in diagnostics, treatment planning, and patient care.",
-        "This is a tech review video comparing the latest smartphones, covering performance, battery life, and camera quality.",
-        "The video explains the science behind black holes, including how they form, their properties, and what happens near the event horizon."
-    ]
-
-    selected_response = choice(mock_responses)
-
-    formatted_output = f'USER: Summarize the video\nASSISTANT: {selected_response}'
-    return formatted_output

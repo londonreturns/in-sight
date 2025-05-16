@@ -3,3 +3,5 @@ pymongo==4.10.1
 dotenv==0.9.9
 opencv-python-headless
 pillow
+ultralytics
+transformers

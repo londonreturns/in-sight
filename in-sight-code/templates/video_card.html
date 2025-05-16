@@ -1,19 +1,19 @@
 <div class="col-12 col-md-6 col-lg-4">
     <div class="card mb-3 d-flex flex-row align-items-center justify-content-between video-card" data-id="{{ video.id }}">
         <div class="w-100">
-            <img src="/getThumbnail/{{ video.id }}" alt="Video Thumbnail"
-                 loading="lazy" style="width: 100%; height: 210px; border-radius: 10px; object-fit: cover;">
+            <div class="video-thumbnail-wrapper" style="width: 100%; height: 210px; border-radius: 10px; overflow: hidden; position: relative;">
+                <img src="/getThumbnail/{{ video.id }}" alt="Video Thumbnail"
+                     loading="lazy"
+                     style="width: 100%; height: 210px; border-radius: 10px; object-fit: cover; background: #adb5bd;"
+                     onerror="this.style.display='none';this.parentNode.innerHTML='<div style=&quot;width:100%;height:210px;display:flex;align-items:center;justify-content:center;background:#adb5bd;color:#fff;font-weight:bold;font-size:1.2rem;border-radius:10px;&quot;>[No thumbnail]</div>';">
+            </div>
             <div class="p-3">
                 <h5 class="mb-1">
-                    {{ video.filename[:30] + '...' if video.filename|length > 30 else video.filename }}
+                    {% set filename_without_ext = video.filename.rsplit('.', 1)[0] %}
+                    {{ filename_without_ext[:30] + '...' if filename_without_ext|length > 30 else filename_without_ext }}
                 </h5>
                 <small>Date: {{ video.date_added }}</small>
             </div>
-        </div>
-        <div class="card-actions">
-            <button class="btn delete-video-btn" data-id="{{ video.id }}">
-                <img class="delete-svg" src="static/images/ic_baseline-delete.svg" alt="">
-            </button>
         </div>
     </div>
 </div>

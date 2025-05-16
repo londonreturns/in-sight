@@ -5,6 +5,13 @@ function showModal(title, body, actionButtonText, actionCallback) {
     const actionButton = document.getElementById('modalActionButton');
     actionButton.textContent = actionButtonText;
 
+    // Set button color to red for logout
+    if (actionButtonText === "Logout") {
+        actionButton.className = "btn btn-danger";
+    } else {
+        actionButton.className = "btn btn-primary";
+    }
+
     const newActionButton = actionButton.cloneNode(true);
     actionButton.parentNode.replaceChild(newActionButton, actionButton);
 
