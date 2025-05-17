@@ -9,6 +9,17 @@ export function setupSummarySection(modalBody, videoId, contentType) {
     const keyframeSliderValue = modalBody.querySelector("#keyframeThresholdValue");
     const generateBtn = modalBody.querySelector("#generateSummaryBtn");
 
+    if (slider) {
+        slider.min = 0.2;
+        if (parseFloat(slider.value) < 0.2) slider.value = 0.2;
+        if (sliderValue) sliderValue.textContent = slider.value;
+    }
+    if (keyframeSlider) {
+        keyframeSlider.min = 5;
+        if (parseInt(keyframeSlider.value) < 5) keyframeSlider.value = 5;
+        if (keyframeSliderValue) keyframeSliderValue.textContent = keyframeSlider.value;
+    }
+
     if (slider && sliderValue) {
         slider.addEventListener("input", () => {
             sliderValue.textContent = slider.value;
