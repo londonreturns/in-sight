@@ -64,16 +64,16 @@ export function setupSummarySection(modalBody, videoId, contentType) {
 
                 showToast("Summary generated successfully.", "success");
                 displaySummary(modalBody, videoId, contentType);
-                console.log(videoId)
 
                 const summarizedVideoId = result.summarized_video_id;
                 const keyframeThreshold = keyframeSlider ? keyframeSlider.value : 80;
                 summaryTextContainer.innerHTML = `<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
                 try {
                     const textResp = await fetch(`/getSummarizedVideoText/${summarizedVideoId}?keyframe_threshold=${keyframeThreshold}`);
-                    const textData = await textResp.json();
+                    let textData = await textResp.json();
                     const timecodesResp = await fetch(`/getVideoTimecodes/${videoId}`);
                     const timecodesData = await timecodesResp.json();
+                    textData = cleanSummaryObject(textData);
                     const timecodes = Array.isArray(timecodesData.timecodes) ? timecodesData.timecodes : null;
                     renderSummaryTabs(summaryTextContainer, textData, timecodes);
                 } catch (err) {
@@ -91,6 +91,37 @@ export function setupSummarySection(modalBody, videoId, contentType) {
     }
 }
 
+function cleanSummaryObject(data) {
+    const cleanFrameSummaries = data.frame_summaries.map(frame => {
+        if (frame.raw) {
+            let cleanedRaw = frame.raw.charAt(0).toUpperCase() + frame.raw.slice(1);
+            cleanedRaw = cleanedRaw.replace(/\. ([a-z])/g, (match, char) => `. ${char.toUpperCase()}`);
+            const lastDotIndex = cleanedRaw.lastIndexOf('.');
+            if (lastDotIndex < cleanedRaw.length - 1) {
+                cleanedRaw = cleanedRaw.substring(0, cleanedRaw.lastIndexOf('.') + 1);
+            }
+            return {raw: cleanedRaw};
+        }
+        return frame;
+    });
+
+    let cleanOverallSummaryRaw = "";
+    if (data.overall_summary && data.overall_summary.raw) {
+        cleanOverallSummaryRaw = data.overall_summary.raw.charAt(0).toUpperCase() + data.overall_summary.raw.slice(1);
+        const lastDotIndex = cleanOverallSummaryRaw.lastIndexOf('.');
+        if (lastDotIndex !== cleanOverallSummaryRaw.length - 1) {
+            cleanOverallSummaryRaw = cleanOverallSummaryRaw.substring(0, cleanOverallSummaryRaw.lastIndexOf('.'));
+        }
+        cleanOverallSummaryRaw = cleanOverallSummaryRaw.replace(/\. ([a-z])/g, (match, char) => `. ${char.toUpperCase()}`);
+    }
+
+    return {
+        frame_summaries: cleanFrameSummaries,
+        overall_summary: {raw: cleanOverallSummaryRaw}
+    };
+}
+
+
 function checkAndDisplaySummary(modalBody, videoId, contentType) {
     fetch(`/checkSummaryExists/${videoId}`)
         .then(res => res.json())
@@ -107,8 +138,8 @@ function checkAndDisplaySummary(modalBody, videoId, contentType) {
 
                     let textResp = await fetch(`/getSummarizedTextFromDB/${videoId}`);
                     textData = await textResp.json();
-                }
-                catch (err) {
+                    textData = cleanSummaryObject(textData);
+                } catch (err) {
                     showToast("Failed to load summary text.", "error");
                 }
 
