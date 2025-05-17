@@ -14,23 +14,29 @@ print(f"\n🔧 Using device: {device}\n")
 torch.set_num_threads(os.cpu_count())
 torch.backends.cudnn.benchmark = True
 
-executor = ThreadPoolExecutor(16)
+executor = ThreadPoolExecutor(max_workers=os.cpu_count())
 
-# --- Model caching ---
+import threading
+
 _model_loaded = False
 _cached_processor = None
 _cached_model = None
+_model_lock = threading.Lock()
 
 def load_model():
     global _model_loaded, _cached_processor, _cached_model
-    if not _model_loaded:
-        print("📦 Loading model... (this may take a while)")
-        _cached_processor = InstructBlipProcessor.from_pretrained("Salesforce/instructblip-flan-t5-xl")
-        _cached_model = InstructBlipForConditionalGeneration.from_pretrained("Salesforce/instructblip-flan-t5-xl").to(device)
-        _cached_model.eval()
-        _model_loaded = True
-        print("✅ Model loaded!")
+    with _model_lock:
+        if not _model_loaded:
+            print("📦 Loading model... (this may take a while)")
+            _cached_processor = InstructBlipProcessor.from_pretrained("Salesforce/instructblip-flan-t5-xl")
+            _cached_model = InstructBlipForConditionalGeneration.from_pretrained(
+                "Salesforce/instructblip-flan-t5-xl"
+            ).to(device)
+            _cached_model.eval()
+            _model_loaded = True
+            print("✅ Model loaded!")
     return _cached_processor, _cached_model
+
 
 def unload_model(model):
     # No-op: model is kept in memory for reuse
@@ -96,8 +102,7 @@ def summarize_video_path(video_path: str, keyframe_threshold: int = 80) -> dict:
     {
         "frame_description": "Describe the content of the image, including any notable actions, settings, or context.",
         "people": ["List all people visible in this image as a JSON array with descriptions of each person."],
-        "objects": ["List all objects visible in this image as a JSON array with descriptions of each object."],
-        "background": "Describe the background elements of this image, including scenery, objects, and other visible features."
+        "objects": ["List all objects visible in this image as a JSON array with descriptions of each object."]
     }
     """
 
