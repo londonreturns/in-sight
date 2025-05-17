@@ -278,6 +278,9 @@ def update_video_filename_route(video_id):
         if not data or 'filename' not in data:
             return jsonify({"error": "Filename is required"}), 400
 
+        if data['filename'] == '':
+            return jsonify({"error": "Filename cannot be empty"}), 400
+
         new_filename = data['filename']
 
         # Check if the filename has an extension, if not add .mp4 as default

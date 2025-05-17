@@ -97,11 +97,21 @@ function checkAndDisplaySummary(modalBody, videoId, contentType) {
         .then(async data => {
             if (data.has_summary) {
                 displaySummary(modalBody, videoId, contentType);
-                const timecodesResp = await fetch(`/getVideoTimecodes/${videoId}`);
-                const timecodesData = await timecodesResp.json();
-                const timecodes = Array.isArray(timecodesData.timecodes) ? timecodesData.timecodes : null;
-                const textResp = await fetch(`/getSummarizedTextFromDB/${videoId}`);
-                const textData = await textResp.json();
+
+                let timecodes, textData;
+
+                try {
+                    let timecodesResp = await fetch(`/getVideoTimecodes/${videoId}`);
+                    let timecodesData = await timecodesResp.json();
+                    timecodes = Array.isArray(timecodesData.timecodes) ? timecodesData.timecodes : null;
+
+                    let textResp = await fetch(`/getSummarizedTextFromDB/${videoId}`);
+                    textData = await textResp.json();
+                }
+                catch (err) {
+                    showToast("Failed to load summary text.", "error");
+                }
+
                 let summaryTextContainer = modalBody.querySelector("#summaryTextContainer");
                 renderSummaryTabs(summaryTextContainer, textData, timecodes);
             }
