@@ -4,7 +4,7 @@ from video import store_video, query_video, query_all_videos, get_thumbnail_from
     get_summarized_video_text, get_summarized_text_from_db, get_timecodes_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
-    clear_user_credentials, object_id_to_str
+    clear_user_credentials, object_id_to_str, is_session_expired
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -23,12 +23,16 @@ def home():
 
 @routes.route('/howItWorks')
 def how_it_works():
+    is_session_expired(session)
+
     current_page = "howitworks"
     return render_template('howItWorks.html', currentPage=current_page, isLoggedIn=is_logged_in(session))
 
 
 @routes.route('/uploadVideo', methods=['POST'])
 def upload_video():
+    is_session_expired(session)
+
     if 'video' not in request.files:
         return jsonify({"error": "No video file uploaded"}), 400
 
@@ -50,8 +54,7 @@ def upload_video():
 
 @routes.route('/generateSummary/<video_id>', methods=['POST'])
 def generate_summary(video_id):
-    if "_id" not in session:
-        return jsonify({"error": "User not logged in"}), 401
+    is_session_expired(session)
 
     try:
         # Get the video from the database
@@ -94,6 +97,8 @@ def generate_summary(video_id):
 
 @routes.route('/getVideoTimecodes/<video_id>', methods=['GET'])
 def get_video_timecodes(video_id):
+    is_session_expired(session)
+
     timecodes = get_timecodes_from_db(video_id)
     return jsonify({
         "success": True,
@@ -103,6 +108,8 @@ def get_video_timecodes(video_id):
 
 @routes.route('/deleteVideo/<video_id>', methods=['DELETE'])
 def delete_video(video_id):
+    is_session_expired(session)
+
     if "_id" not in session:
         logout()
 
@@ -114,11 +121,15 @@ def delete_video(video_id):
 @routes.route('/getVideo/<video_id>')
 @routes.route('/video/<video_id>')
 def get_video(video_id):
+    is_session_expired(session)
+
     return query_video(video_id)
 
 
 @routes.route('/getSummarizedVideo/<video_id>')
 def get_summarized_video_route(video_id):
+    is_session_expired(session)
+
     response = get_summarized_video(video_id)
     if response is None:
         return jsonify({"error": "Summarized video not found"}), 404
@@ -127,6 +138,8 @@ def get_summarized_video_route(video_id):
 
 @routes.route('/getSummarizedVideoText/<video_id>')
 def get_summarized_video_text_route(video_id):
+    is_session_expired(session)
+
     keyframe_threshold = request.args.get("keyframe_threshold", default=80, type=int)
     response = get_summarized_video_text(video_id, keyframe_threshold=keyframe_threshold)
     if response is None:
@@ -136,6 +149,8 @@ def get_summarized_video_text_route(video_id):
 
 @routes.route('/checkSummaryExists/<video_id>')
 def check_summary_exists_route(video_id):
+    is_session_expired(session)
+
     from video import check_summary_exists
     has_summary = check_summary_exists(video_id)
     return jsonify({"has_summary": has_summary})
@@ -143,6 +158,8 @@ def check_summary_exists_route(video_id):
 
 @routes.route('/getSummarizedTextFromDB/<video_id>')
 def get_summarized_text_from_db_route(video_id):
+    is_session_expired(session)
+
     response = get_summarized_text_from_db(video_id)
     if response is None:
         return jsonify({"error": "Summarized text not found"}), 404
@@ -255,6 +272,8 @@ def logout():
 
 @routes.route('/getVideosOfUser', methods=['GET'])
 def get_videos_of_user():
+    is_session_expired(session)
+
     if "_id" not in session:
         return jsonify({"error": "User not logged in"}), 400
 
@@ -265,11 +284,15 @@ def get_videos_of_user():
 
 @routes.route('/getThumbnail/<video_id>', methods=['GET'])
 def get_thumbnail(video_id):
+    is_session_expired(session)
+
     return get_thumbnail_from_db(video_id)
 
 
 @routes.route('/updateVideoFilename/<video_id>', methods=['POST'])
 def update_video_filename_route(video_id):
+    is_session_expired(session)
+
     if "_id" not in session:
         return jsonify({"error": "User not logged in"}), 401
 
@@ -295,6 +318,8 @@ def update_video_filename_route(video_id):
 
 @routes.route('/getUpdatedVideoList')
 def get_updated_video_list():
+    is_session_expired(session)
+
     if "_id" not in session:
         logout()
 

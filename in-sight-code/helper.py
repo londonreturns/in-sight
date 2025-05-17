@@ -15,6 +15,7 @@ from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_POS_M
     COLOR_BGR2RGB, resize
 from PIL import Image
 from gridfs import GridFS
+from flask import render_template
 
 
 def sha_256(string):
@@ -23,6 +24,13 @@ def sha_256(string):
 
 def is_logged_in(session):
     return session.get("user_type", None)
+
+
+def is_session_expired(session):
+    if not session.get("_id") or not session.get("user_type"):
+        current_page = "login"
+        return render_template('login.html', currentPage=current_page, isLoggedIn=False)
+    return None
 
 
 def otp_generator():
