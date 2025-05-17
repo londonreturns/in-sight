@@ -178,6 +178,13 @@ def delete_video_from_db(session, video_id):
             except Exception as e:
                 print(f"Error deleting thumbnail: {e}")
 
+        if "summarized_text" in video:
+            # Delete summarized text for this video
+            try:
+                db.summarized_texts.delete_many({"video_id": video["_id"]})
+            except Exception as e:
+                print(f"Error deleting summarized text: {e}")
+
         # Delete the video file and its chunks
         try:
             delete_gridfs_file_and_chunks(db, video_id)

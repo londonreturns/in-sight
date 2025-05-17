@@ -183,6 +183,11 @@ function setupDeleteHandler(videoId, modalInstance) {
 
             const deleteHandler = async () => {
                 try {
+                    // Disable button and show spinner
+                    confirmActionButton.disabled = true;
+                    const originalText = confirmActionButton.innerHTML;
+                    confirmActionButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...`;
+
                     showToast("Deleting video...", "processing", 999999);
 
                     const response = await fetch(`/deleteVideo/${videoId}`, { method: "DELETE" });
@@ -211,6 +216,9 @@ function setupDeleteHandler(videoId, modalInstance) {
                 } catch (error) {
                     showToast("An error occurred while deleting the video.", "error");
                 } finally {
+                    // Re-enable button and restore text
+                    confirmActionButton.disabled = false;
+                    confirmActionButton.innerHTML = "Yes, Delete";
                     confirmActionButton.removeEventListener("click", deleteHandler);
                 }
             };
