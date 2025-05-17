@@ -23,6 +23,7 @@ _cached_processor = None
 _cached_model = None
 _model_lock = threading.Lock()
 
+
 def load_model():
     global _model_loaded, _cached_processor, _cached_model
     with _model_lock:
@@ -41,6 +42,7 @@ def load_model():
 def unload_model(model):
     # No-op: model is kept in memory for reuse
     pass
+
 
 def get_keyframes(video_path, threshold=80):
     cap = cv2.VideoCapture(video_path)
@@ -96,7 +98,13 @@ def summarize_video_path(video_path: str, keyframe_threshold: int = 80) -> dict:
     frames = get_keyframes(video_path, threshold=keyframe_threshold)
 
     if not frames:
-        return {"error": "No keyframes could be extracted from the video."}
+        print("⚠️ No keyframes extracted. Using the first frame as fallback.")
+        cap = cv2.VideoCapture(video_path)
+        ret, frame = cap.read()
+        cap.release()
+        if not ret:
+            return {"error": "Unable to extract any frames from the video."}
+        frames = [(0, frame)]
 
     prompt = """For each image, provide a detailed summary with the following structure in a single JSON object:
     {
@@ -108,7 +116,7 @@ def summarize_video_path(video_path: str, keyframe_threshold: int = 80) -> dict:
 
     frame_summaries = []
 
-    print(f"🖼 Extracted {len(frames)} keyframes.")
+    print(f"🖼 Extracted {len(frames)} keyframes (or fallback frames).")
 
     future_to_frame = {
         frame_id: executor.submit(caption_image, Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), prompt)
