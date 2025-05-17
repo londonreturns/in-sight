@@ -94,13 +94,13 @@ export function setupVideoCardClickListener() {
                         <div class="mb-3">
                             <label for="videoShortnerSensitivity" class="form-label">Video Shortner Sensitivity: <span id="thresholdValue">1.4</span></label>
                             <div style="width: 30%; margin: 0 auto;">
-                                <input type="range" class="form-range" id="videoShortnerSensitivity" min="0.5" max="2.0" step="0.1" value="1.4">
+                                <input type="range" class="form-range" id="videoShortnerSensitivity" min="0.2" max="2.0" step="0.1" value="1.4">
                             </div>
                         </div>
                         <div class="mb-3">
                             <label for="keyframeThreshold" class="form-label">Keyframe Threshold: <span id="keyframeThresholdValue">80</span></label>
                             <div style="width: 30%; margin: 0 auto;">
-                                <input type="range" class="form-range" id="keyframeThreshold" min="50" max="120" step="1" value="80">
+                                <input type="range" class="form-range" id="keyframeThreshold" min="20" max="120" step="1" value="80">
                             </div>
                         </div>
                         <button id="generateSummaryBtn" class="btn btn-success mb-3">Generate Summary</button>

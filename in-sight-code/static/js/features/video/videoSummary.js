@@ -23,10 +23,15 @@ export function setupSummarySection(modalBody, videoId, contentType) {
     }
 
     if (generateBtn) {
+
+        const summaryTextContainer = modalBody.querySelector("#summaryTextContainer");
+        summaryTextContainer.innerHTML = `<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+
         generateBtn.addEventListener("click", async () => {
             try {
                 generateBtn.disabled = true;
                 generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+
                 showToast("Generating summary...", "processing", 999999);
 
                 const threshold = parseFloat(slider?.value || "1.4");
@@ -48,15 +53,15 @@ export function setupSummarySection(modalBody, videoId, contentType) {
 
                 showToast("Summary generated successfully.", "success");
                 displaySummary(modalBody, videoId, contentType);
+                console.log(videoId)
 
                 const summarizedVideoId = result.summarized_video_id;
                 const keyframeThreshold = keyframeSlider ? keyframeSlider.value : 80;
-                const summaryTextContainer = modalBody.querySelector("#summaryTextContainer");
                 summaryTextContainer.innerHTML = `<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
                 try {
                     const textResp = await fetch(`/getSummarizedVideoText/${summarizedVideoId}?keyframe_threshold=${keyframeThreshold}`);
                     const textData = await textResp.json();
-                    const timecodesResp = await fetch(`/getVideoTimecodes/${summarizedVideoId}`);
+                    const timecodesResp = await fetch(`/getVideoTimecodes/${videoId}`);
                     const timecodesData = await timecodesResp.json();
                     const timecodes = Array.isArray(timecodesData.timecodes) ? timecodesData.timecodes : null;
                     renderSummaryTabs(summaryTextContainer, textData, timecodes);
@@ -181,7 +186,7 @@ function renderSummaryTabs(container, summaryData, timecodes = null) {
     // Build tab contents
     let tabContents = `<div class="tab-content mt-3" id="summaryTabsContent">`;
     tabContents += `<div class="tab-pane fade show active" id="overall" role="tabpanel" aria-labelledby="overall-tab">
-        <pre style="white-space:pre-wrap;">${escapeHtml(overallSummary?.raw || "No overall summary available.")}</pre>
+        <pre style="white-space:pre-wrap;">${escapeHtml(overallSummary?.raw || "No summary available. Please try changing the threshold and retry.")}</pre>
     </div>`;
     frameSummaries.forEach((frame, idx) => {
         tabContents += `<div class="tab-pane fade" id="frame${idx}" role="tabpanel" aria-labelledby="frame${idx}-tab">
