@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
     delete_video_from_db, store_summarized_video, update_video_filename, get_summarized_video, \
-    get_summarized_video_text, get_summarized_text_from_db
+    get_summarized_video_text, get_summarized_text_from_db, get_timecodes_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str
@@ -70,23 +70,35 @@ def generate_summary(video_id):
 
         # Generate the summary video in memory
         from video_shortener import summarize_video_in_memory
-        summary_buffer = summarize_video_in_memory(video_bytes, threshold=threshold)
+        result = summarize_video_in_memory(video_bytes, threshold=threshold)
+        summary_buffer = result["video"]
+        timecodes = result["timecodes"]
 
         if not summary_buffer:
             return jsonify({"error": "Failed to generate summary video"}), 500
 
-        # Store the summarized video in the database
+        # Store the summarized video in the database, save timecodes
         summary_buffer.seek(0)
-        summarized_video_id = store_summarized_video(video_id, summary_buffer)
+        summarized_video_id = store_summarized_video(video_id, summary_buffer, timecodes=timecodes)
 
         return jsonify({
             "success": True,
             "message": "Summary generated successfully",
-            "summarized_video_id": str(summarized_video_id)
+            "summarized_video_id": str(summarized_video_id),
+            "timecodes": timecodes
         }), 200
 
     except Exception as e:
         return jsonify({"error": f"Failed to generate summary: {str(e)}"}), 500
+
+
+@routes.route('/getVideoTimecodes/<video_id>', methods=['GET'])
+def get_video_timecodes(video_id):
+    timecodes = get_timecodes_from_db(video_id)
+    return jsonify({
+        "success": True,
+        "timecodes": timecodes
+    }), 200
 
 
 @routes.route('/deleteVideo/<video_id>', methods=['DELETE'])

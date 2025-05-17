@@ -1,6 +1,5 @@
 import cv2
 import os
-import tempfile
 import subprocess
 from ultralytics import YOLO
 from io import BytesIO
@@ -18,6 +17,7 @@ def compare_histograms(f1, f2):
 
 def detect_scene_changes(video_path, threshold=0.6):
     cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
     success, prev_frame = cap.read()
     if not success:
         raise ValueError("Error reading video")
@@ -37,7 +37,7 @@ def detect_scene_changes(video_path, threshold=0.6):
         frame_id += 1
 
     cap.release()
-    return frames
+    return frames, fps
 
 
 def filter_frames_by_objects(frames, object_names={"person"}):
@@ -107,8 +107,8 @@ def summarize_video_in_memory(video_bytes, threshold=1.4, object_names=None):
         with os.fdopen(fd_in, 'wb') as f_in:
             f_in.write(video_bytes)
 
-        # Step 1: Detect scene changes
-        scene_frames = detect_scene_changes(tmp_in_path, threshold)
+        # Step 1: Detect scene changes and get FPS
+        scene_frames, fps = detect_scene_changes(tmp_in_path, threshold)
 
         # Step 2: Fallback if no scene changes
         if not scene_frames:
@@ -117,6 +117,7 @@ def summarize_video_in_memory(video_bytes, threshold=1.4, object_names=None):
             cap.release()
             if success:
                 scene_frames = [(0, frame)]
+            fps = fps or 30
 
         # Step 3: Filter frames by objects
         important_frames = filter_frames_by_objects(scene_frames, object_names)
@@ -125,13 +126,27 @@ def summarize_video_in_memory(video_bytes, threshold=1.4, object_names=None):
         if not important_frames:
             important_frames = [scene_frames[0]]
 
+        # --- Track timecodes for selected frames ---
+        timecodes = []
+        for frame_id, _ in important_frames:
+            seconds = frame_id / fps
+            h = int(seconds // 3600)
+            m = int((seconds % 3600) // 60)
+            s = int(seconds % 60)
+            ms = int((seconds - int(seconds)) * 1000)
+            timecodes.append(f"{h:02}:{m:02}:{s:02}.{ms:03}")
+
         # Step 5: Save and convert video
         save_frames_as_video(important_frames, tmp_raw_summary)
         convert_to_browser_compatible(tmp_raw_summary, tmp_browser_compatible)
 
         # Step 6: Load final video
         with open(tmp_browser_compatible, "rb") as f_out:
-            return BytesIO(f_out.read())
+            video_bytes = f_out.read()
+            return {
+                "video": BytesIO(video_bytes),
+                "timecodes": timecodes
+            }
 
     finally:
         for path in [tmp_in_path, tmp_raw_summary, tmp_browser_compatible]:

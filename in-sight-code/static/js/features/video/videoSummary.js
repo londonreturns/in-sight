@@ -56,7 +56,10 @@ export function setupSummarySection(modalBody, videoId, contentType) {
                 try {
                     const textResp = await fetch(`/getSummarizedVideoText/${summarizedVideoId}?keyframe_threshold=${keyframeThreshold}`);
                     const textData = await textResp.json();
-                    renderSummaryTabs(summaryTextContainer, textData);
+                    const timecodesResp = await fetch(`/getVideoTimecodes/${summarizedVideoId}`);
+                    const timecodesData = await timecodesResp.json();
+                    const timecodes = Array.isArray(timecodesData.timecodes) ? timecodesData.timecodes : null;
+                    renderSummaryTabs(summaryTextContainer, textData, timecodes);
                 } catch (err) {
                     summaryTextContainer.innerHTML = `<div class="alert alert-danger">Failed to load summary text.</div>`;
                 }
@@ -78,10 +81,13 @@ function checkAndDisplaySummary(modalBody, videoId, contentType) {
         .then(async data => {
             if (data.has_summary) {
                 displaySummary(modalBody, videoId, contentType);
+                const timecodesResp = await fetch(`/getVideoTimecodes/${videoId}`);
+                const timecodesData = await timecodesResp.json();
+                const timecodes = Array.isArray(timecodesData.timecodes) ? timecodesData.timecodes : null;
                 const textResp = await fetch(`/getSummarizedTextFromDB/${videoId}`);
                 const textData = await textResp.json();
                 let summaryTextContainer = modalBody.querySelector("#summaryTextContainer");
-                renderSummaryTabs(summaryTextContainer, textData);
+                renderSummaryTabs(summaryTextContainer, textData, timecodes);
             }
         })
         .catch(err => {
@@ -150,7 +156,7 @@ function setupKeyboardShortcuts(videoEl) {
 }
 
 
-function renderSummaryTabs(container, summaryData) {
+function renderSummaryTabs(container, summaryData, timecodes = null) {
     if (!summaryData) {
         container.innerHTML = `<p>No summary data available.</p>`;
         return;
@@ -165,8 +171,9 @@ function renderSummaryTabs(container, summaryData) {
         <button class="nav-link active" id="overall-tab" data-bs-toggle="tab" data-bs-target="#overall" type="button" role="tab" aria-controls="overall" aria-selected="true">Overall Summary</button>
     </li>`;
     frameSummaries.forEach((_, idx) => {
+        let label = (timecodes && timecodes[idx]) ? timecodes[idx] : "";
         tabs += `<li class="nav-item" role="presentation">
-            <button class="nav-link" id="frame${idx}-tab" data-bs-toggle="tab" data-bs-target="#frame${idx}" type="button" role="tab" aria-controls="frame${idx}" aria-selected="false">Frame ${idx + 1}</button>
+            <button class="nav-link" id="frame${idx}-tab" data-bs-toggle="tab" data-bs-target="#frame${idx}" type="button" role="tab" aria-controls="frame${idx}" aria-selected="false">${label}</button>
         </li>`;
     });
     tabs += `</ul>`;

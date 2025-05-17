@@ -165,6 +165,12 @@ def delete_video_from_db(session, video_id):
             except Exception as e:
                 print(f"Error deleting summarized video: {e}")
 
+            # --- Delete summarized text for this summarized video ---
+            try:
+                db.summarized_texts.delete_many({"summarized_video_id": video["summarized_video_id"]})
+            except Exception as e:
+                print(f"Error deleting summarized text: {e}")
+
         # Delete thumbnail and its chunks if present
         if "thumbnail_id" in video:
             try:
@@ -188,7 +194,7 @@ def delete_video_from_db(session, video_id):
         return {"error": "An error occurred while deleting the video"}, 500
 
 
-def store_summarized_video(video_id, summary_file):
+def store_summarized_video(video_id, summary_file, timecodes=None):
     db, client = open_connection()
     fs = GridFS(db)
 
@@ -206,10 +212,14 @@ def store_summarized_video(video_id, summary_file):
             content_type=video_doc['content_type']
         )
 
-        # Update the video document with the summarized video ID
+        # Update the video document with the summarized video ID and timecodes
+        update_fields = {"summarized_video_id": summarized_video_id}
+        if timecodes is not None:
+            update_fields["timecodes"] = timecodes
+
         db.videos.update_one(
             {"_id": ObjectId(video_id)},
-            {"$set": {"summarized_video_id": summarized_video_id}}
+            {"$set": update_fields}
         )
 
         close_connection(client)
@@ -317,6 +327,7 @@ def check_summary_exists(video_id):
         close_connection(client)
         return False
 
+
 def get_summarized_text_from_db(video_id):
     db, client = open_connection()
 
@@ -338,6 +349,7 @@ def get_summarized_text_from_db(video_id):
         print(f"Error getting summarized text: {e}")
         close_connection(client)
         return None
+
 
 def update_video_filename(video_id, new_filename):
     db, client = open_connection()
@@ -380,3 +392,18 @@ def update_video_filename(video_id, new_filename):
         print(f"Error updating video filename: {e}")
         close_connection(client)
         return {"error": f"An error occurred while updating the filename: {str(e)}"}, 500
+
+
+def get_timecodes_from_db(video_id):
+    db, client = open_connection()
+    try:
+        video_doc = db.videos.find_one({"_id": ObjectId(video_id)})
+        if not video_doc or "timecodes" not in video_doc:
+            close_connection(client)
+            return []
+        timecodes = video_doc["timecodes"]
+        close_connection(client)
+        return timecodes
+    except Exception as e:
+        close_connection(client)
+        return []
