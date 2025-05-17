@@ -14,23 +14,27 @@ print(f"\n🔧 Using device: {device}\n")
 torch.set_num_threads(os.cpu_count())
 torch.backends.cudnn.benchmark = True
 
-executor = ThreadPoolExecutor(max_workers=os.cpu_count())
+executor = ThreadPoolExecutor(16)
 
+# --- Model caching ---
+_model_loaded = False
+_cached_processor = None
+_cached_model = None
 
 def load_model():
-    print("📦 Loading model... (this may take a while)")
-    processor = InstructBlipProcessor.from_pretrained("Salesforce/instructblip-flan-t5-xl")
-    model = InstructBlipForConditionalGeneration.from_pretrained("Salesforce/instructblip-flan-t5-xl").to(device)
-    model.eval()
-    print("✅ Model loaded!")
-    return processor, model
-
+    global _model_loaded, _cached_processor, _cached_model
+    if not _model_loaded:
+        print("📦 Loading model... (this may take a while)")
+        _cached_processor = InstructBlipProcessor.from_pretrained("Salesforce/instructblip-flan-t5-xl")
+        _cached_model = InstructBlipForConditionalGeneration.from_pretrained("Salesforce/instructblip-flan-t5-xl").to(device)
+        _cached_model.eval()
+        _model_loaded = True
+        print("✅ Model loaded!")
+    return _cached_processor, _cached_model
 
 def unload_model(model):
-    del model
-    torch.cuda.empty_cache()
-    print("🗑 Model unloaded!")
-
+    # No-op: model is kept in memory for reuse
+    pass
 
 def get_keyframes(video_path, threshold=80):
     cap = cv2.VideoCapture(video_path)
@@ -71,7 +75,7 @@ def caption_image(img: Image.Image, prompt: str):
         except json.JSONDecodeError:
             return {"raw": result}
     finally:
-        unload_model(model)  # Unload model after use
+        unload_model(model)  # No-op now
 
 
 def summarize_video_file(video_file) -> dict:
@@ -116,13 +120,17 @@ def summarize_video_path(video_path: str, keyframe_threshold: int = 80) -> dict:
         "Provide a complete JSON summary of the video with keys: 'frame_description', 'people', 'animals', 'background'."
     )
 
+    response = {
+        "frame_summaries": frame_summaries,
+        "overall_summary": overall_summary
+    }
+
+    print(response)
+
     # Ensure the temporary file is deleted only after the summary is generated
     try:
         os.remove(video_path)
     except OSError as e:
         print(f"Error deleting temporary file: {e}")
 
-    return {
-        "frame_summaries": frame_summaries,
-        "overall_summary": overall_summary
-    }
+    return response

@@ -6,7 +6,7 @@ from database import open_connection, close_connection
 from bson import ObjectId
 from helper import generate_thumbnail
 from io import BytesIO
-from image_summary import summarize_video_path
+from image_captioning import summarize_video_path
 import tempfile
 
 
@@ -27,10 +27,14 @@ def store_video(video, session):
 
     date_added = datetime.now()
 
+    filename_parts = video.filename.rsplit('.', 1)
+    file_type = filename_parts[1].lower() if len(filename_parts) > 1 else ""
+
     video_document = {
         "_id": video_id,
         "filename": video.filename,
         "content_type": video.content_type,
+        "file_type": file_type,
         "user_id": user_id,
         "date_added": date_added,
         "file_size": file_size,
@@ -241,19 +245,33 @@ def get_summarized_video(video_id):
         close_connection(client)
         return None
 
-def get_summarized_video_text(video_id):
+
+def get_summarized_video_text(video_id, keyframe_threshold=80):
     db, client = open_connection()
     fs = GridFS(db)
 
     try:
-        # Get the video document
-        video_doc = db.videos.find_one({"_id": ObjectId(video_id)})
-        if not video_doc or "summarized_video_id" not in video_doc:
-            close_connection(client)
-            return {"error": "Summarized video not found for given video ID."}
+        # Try to get the summarized video by id directly
+        try:
+            summarized_video_file = fs.get(ObjectId(video_id))
+            summarized_video_id = ObjectId(video_id)
+        except Exception:
+            # Fallback: treat video_id as original video, get summarized_video_id
+            video_doc = db.videos.find_one({"_id": ObjectId(video_id)})
+            if not video_doc or "summarized_video_id" not in video_doc:
+                close_connection(client)
+                return {"error": "Summarized video not found for given video ID."}
+            summarized_video_id = video_doc["summarized_video_id"]
+            summarized_video_file = fs.get(ObjectId(summarized_video_id))
 
-        # Get summarized video from GridFS
-        summarized_video_file = fs.get(ObjectId(video_doc["summarized_video_id"]))
+        # Check if summary text is already stored in the DB for this summarized video and threshold
+        summary_doc = db.summarized_texts.find_one({
+            "summarized_video_id": summarized_video_id,
+            "keyframe_threshold": keyframe_threshold
+        })
+        if summary_doc and "summary" in summary_doc:
+            close_connection(client)
+            return summary_doc["summary"]
 
         # Save video to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
@@ -262,8 +280,18 @@ def get_summarized_video_text(video_id):
 
         close_connection(client)
 
-        # Summarize the summarized video
-        result = summarize_video_path(tmp_path)
+        # Summarize the summarized video with the given keyframe threshold
+        result = summarize_video_path(tmp_path, keyframe_threshold=keyframe_threshold)
+
+        # Store the summary in the DB for future use
+        db, client = open_connection()
+        db.summarized_texts.update_one(
+            {"summarized_video_id": summarized_video_id, "keyframe_threshold": keyframe_threshold},
+            {"$set": {"summary": result}},
+            upsert=True
+        )
+        close_connection(client)
+
         return result
 
     except Exception as e:
@@ -289,6 +317,27 @@ def check_summary_exists(video_id):
         close_connection(client)
         return False
 
+def get_summarized_text_from_db(video_id):
+    db, client = open_connection()
+
+    try:
+        # Get the video document
+        video_doc = db.videos.find_one({"_id": ObjectId(video_id)})
+
+        # Check if the video document exists and has a summarized_video_id field
+        if not video_doc or "summarized_video_id" not in video_doc:
+            close_connection(client)
+            return None
+
+        # Get the summarized text from the database
+        summary_doc = db.summarized_texts.find_one({"summarized_video_id": video_doc["summarized_video_id"]})
+
+        close_connection(client)
+        return summary_doc["summary"] if summary_doc else None
+    except Exception as e:
+        print(f"Error getting summarized text: {e}")
+        close_connection(client)
+        return None
 
 def update_video_filename(video_id, new_filename):
     db, client = open_connection()
@@ -331,5 +380,3 @@ def update_video_filename(video_id, new_filename):
         print(f"Error updating video filename: {e}")
         close_connection(client)
         return {"error": f"An error occurred while updating the filename: {str(e)}"}, 500
-
-

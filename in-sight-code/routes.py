@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
-    delete_video_from_db, store_summarized_video, update_video_filename, get_summarized_video, get_summarized_video_text
+    delete_video_from_db, store_summarized_video, update_video_filename, get_summarized_video, \
+    get_summarized_video_text, get_summarized_text_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str
@@ -68,7 +69,7 @@ def generate_summary(video_id):
         threshold = data.get('threshold', 1.4) if data else 1.4
 
         # Generate the summary video in memory
-        from summarize import summarize_video_in_memory
+        from video_shortener import summarize_video_in_memory
         summary_buffer = summarize_video_in_memory(video_bytes, threshold=threshold)
 
         if not summary_buffer:
@@ -78,14 +79,10 @@ def generate_summary(video_id):
         summary_buffer.seek(0)
         summarized_video_id = store_summarized_video(video_id, summary_buffer)
 
-        # Generate a placeholder summary text (lorem ipsum)
-        summary_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
-
         return jsonify({
             "success": True,
             "message": "Summary generated successfully",
-            "summarized_video_id": str(summarized_video_id),
-            "summary_text": summary_text
+            "summarized_video_id": str(summarized_video_id)
         }), 200
 
     except Exception as e:
@@ -115,18 +112,29 @@ def get_summarized_video_route(video_id):
         return jsonify({"error": "Summarized video not found"}), 404
     return response
 
+
 @routes.route('/getSummarizedVideoText/<video_id>')
 def get_summarized_video_text_route(video_id):
-    response = get_summarized_video_text(video_id)
+    keyframe_threshold = request.args.get("keyframe_threshold", default=80, type=int)
+    response = get_summarized_video_text(video_id, keyframe_threshold=keyframe_threshold)
     if response is None:
         return jsonify({"error": "Summarized video text not found"}), 404
     return jsonify(response)
+
 
 @routes.route('/checkSummaryExists/<video_id>')
 def check_summary_exists_route(video_id):
     from video import check_summary_exists
     has_summary = check_summary_exists(video_id)
     return jsonify({"has_summary": has_summary})
+
+
+@routes.route('/getSummarizedTextFromDB/<video_id>')
+def get_summarized_text_from_db_route(video_id):
+    response = get_summarized_text_from_db(video_id)
+    if response is None:
+        return jsonify({"error": "Summarized text not found"}), 404
+    return jsonify(response)
 
 
 @routes.route('/loginPage')
