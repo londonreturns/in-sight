@@ -94,7 +94,7 @@ export function setupVideoCardClickListener() {
                         <div class="mb-3">
                             <label for="videoShortnerSensitivity" class="form-label">Video Shortner Sensitivity: <span id="thresholdValue">1.4</span></label>
                             <div style="width: 30%; margin: 0 auto;">
-                                <input type="range" class="form-range" id="videoShortnerSensitivity" min="0.2" max="2.0" step="0.1" value="1.4">
+                                <input type="range" class="form-range" id="videoShortnerSensitivity" min="0" max="2.0" step="0.1" value="1.4">
                             </div>
                         </div>
                         <div class="mb-3">

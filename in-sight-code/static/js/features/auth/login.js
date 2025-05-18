@@ -51,6 +51,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 showToast(responseData.error || "Invalid login credentials.", "error");
                 submitButton.disabled = false;
                 submitButton.textContent = "Submit";
+                document.querySelector("#exampleInputEmail1").value = "";
+                document.querySelector("#exampleInputPassword1").value = "";
             }
         } catch (error) {
             showToast("An error occurred while logging in.", "error");

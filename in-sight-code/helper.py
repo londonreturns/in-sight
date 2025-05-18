@@ -16,6 +16,9 @@ from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_POS_M
 from PIL import Image
 from gridfs import GridFS
 from flask import render_template
+from moviepy import VideoFileClip
+import tempfile
+import os
 
 
 def sha_256(string):
@@ -164,3 +167,39 @@ def generate_thumbnail(video_id):
     close_connection(client)
 
     return {"message": "Thumbnail generated successfully", "thumbnail_id": str(thumbnail_id)}
+
+
+def convert_video_to_audio(video):
+    # If video is in memory as a BytesIO object, save it to a temporary file
+    if isinstance(video, BytesIO):
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_video_file:
+            video_path = temp_video_file.name
+            temp_video_file.write(video.read())
+    else:
+        # If video is already a file path, just use it
+        video_path = video
+
+    try:
+        # Open the video file using MoviePy
+        with VideoFileClip(video_path) as video_clip:
+            # Check if the video has an audio track
+            audio = video_clip.audio
+            if audio is None:
+                raise ValueError("Video does not contain an audio track.")
+
+            # Write audio to a temporary .wav file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio_file:
+                audio_path = temp_audio_file.name
+                audio.write_audiofile(audio_path, codec='pcm_s16le')
+
+        # Cleanup: remove the temporary video file if it was created
+        if isinstance(video, BytesIO):
+            os.remove(video_path)
+
+        return audio_path
+
+    except Exception as e:
+        # Handle errors and log them
+        print(f"Error during audio extraction: {e}")
+        return str(e)
+

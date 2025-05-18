@@ -5,3 +5,5 @@ opencv-python-headless
 pillow
 ultralytics
 transformers
+moviepy
+openai-whisper

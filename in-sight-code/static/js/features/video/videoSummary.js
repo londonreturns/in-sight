@@ -10,8 +10,8 @@ export function setupSummarySection(modalBody, videoId, contentType) {
     const generateBtn = modalBody.querySelector("#generateSummaryBtn");
 
     if (slider) {
-        slider.min = 0.2;
-        if (parseFloat(slider.value) < 0.2) slider.value = 0.2;
+        slider.min = 0.1;
+        if (parseFloat(slider.value) < 0.1) slider.value = 0.1;
         if (sliderValue) sliderValue.textContent = slider.value;
     }
     if (keyframeSlider) {
@@ -96,9 +96,12 @@ function cleanSummaryObject(data) {
         if (frame.raw) {
             let cleanedRaw = frame.raw.charAt(0).toUpperCase() + frame.raw.slice(1);
             cleanedRaw = cleanedRaw.replace(/\. ([a-z])/g, (match, char) => `. ${char.toUpperCase()}`);
+
+            // Check if the last period exists before removing anything after it
             const lastDotIndex = cleanedRaw.lastIndexOf('.');
-            if (lastDotIndex < cleanedRaw.length - 1) {
-                cleanedRaw = cleanedRaw.substring(0, cleanedRaw.lastIndexOf('.') + 1);
+            if (lastDotIndex !== -1 && lastDotIndex < cleanedRaw.length - 1) {
+                // Remove text after the last period, only if there's a period
+                cleanedRaw = cleanedRaw.substring(0, lastDotIndex + 1);
             }
             return {raw: cleanedRaw};
         }
@@ -108,11 +111,14 @@ function cleanSummaryObject(data) {
     let cleanOverallSummaryRaw = "";
     if (data.overall_summary && data.overall_summary.raw) {
         cleanOverallSummaryRaw = data.overall_summary.raw.charAt(0).toUpperCase() + data.overall_summary.raw.slice(1);
-        const lastDotIndex = cleanOverallSummaryRaw.lastIndexOf('.');
-        if (lastDotIndex !== cleanOverallSummaryRaw.length - 1) {
-            cleanOverallSummaryRaw = cleanOverallSummaryRaw.substring(0, cleanOverallSummaryRaw.lastIndexOf('.'));
-        }
         cleanOverallSummaryRaw = cleanOverallSummaryRaw.replace(/\. ([a-z])/g, (match, char) => `. ${char.toUpperCase()}`);
+
+        // Check if the last period exists before removing anything after it
+        const lastDotIndex = cleanOverallSummaryRaw.lastIndexOf('.');
+        if (lastDotIndex !== -1 && lastDotIndex < cleanOverallSummaryRaw.length - 1) {
+            // Remove text after the last period, only if there's a period
+            cleanOverallSummaryRaw = cleanOverallSummaryRaw.substring(0, lastDotIndex + 1);
+        }
     }
 
     return {
@@ -120,6 +126,7 @@ function cleanSummaryObject(data) {
         overall_summary: {raw: cleanOverallSummaryRaw}
     };
 }
+
 
 
 function checkAndDisplaySummary(modalBody, videoId, contentType) {

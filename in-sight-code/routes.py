@@ -1,10 +1,14 @@
+import os.path
+from datetime import timedelta
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
     delete_video_from_db, store_summarized_video, update_video_filename, get_summarized_video, \
     get_summarized_video_text, get_summarized_text_from_db, get_timecodes_from_db
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
-    clear_user_credentials, object_id_to_str, is_session_expired
+    clear_user_credentials, object_id_to_str, is_session_expired, convert_video_to_audio
+import whisper
+
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
@@ -274,9 +278,6 @@ def logout():
 def get_videos_of_user():
     is_session_expired(session)
 
-    if "_id" not in session:
-        return jsonify({"error": "User not logged in"}), 400
-
     user_id = session["_id"]
     videos = query_all_videos(user_id)
     return jsonify(videos), 200
@@ -292,9 +293,6 @@ def get_thumbnail(video_id):
 @routes.route('/updateVideoFilename/<video_id>', methods=['POST'])
 def update_video_filename_route(video_id):
     is_session_expired(session)
-
-    if "_id" not in session:
-        return jsonify({"error": "User not logged in"}), 401
 
     try:
         data = request.get_json()
@@ -325,3 +323,43 @@ def get_updated_video_list():
 
     videos = get_updated_video_list_from_db(user_id=session['_id'])
     return render_template('partials/video_list.html', videos=videos)
+
+
+@routes.route('/getAudioSummarized/<video_id>', methods=['GET'])
+def get_audio_summarized(video_id):
+    is_session_expired(session)
+
+    video = query_video(video_id, return_file=True)
+    audio_path = convert_video_to_audio(video)
+
+    if not os.path.exists(audio_path):
+        return jsonify({"error": "Audio file not found"}), 404
+
+    # Load the Whisper model (you can use "base", "small", "medium", or "large")
+    model = whisper.load_model("base")
+
+    # Transcribe the audio file with timestamps
+    result = model.transcribe(audio_path, verbose=False)
+
+    time_codes = []
+    transcript = []
+
+    for segment in result["segments"]:
+        start_time = str(timedelta(seconds=int(segment["start"])))
+        end_time = str(timedelta(seconds=int(segment["end"])))
+        text = segment["text"].strip()
+        time_codes.append({
+            "start_time": start_time,
+            "end_time": end_time,
+            "transcript": text
+        })
+        transcript.append(text)
+
+    # Clean up the audio file after processing
+    if os.path.exists(audio_path):
+        os.remove(audio_path)
+
+    return jsonify({
+        "transcript": transcript,
+        "time_codes": time_codes
+    })
