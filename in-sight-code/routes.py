@@ -3,11 +3,13 @@ from datetime import timedelta
 from flask import Blueprint, render_template, request, jsonify, url_for, session
 from video import store_video, query_video, query_all_videos, get_thumbnail_from_db, get_updated_video_list_from_db, \
     delete_video_from_db, store_summarized_video, update_video_filename, get_summarized_video, \
-    get_summarized_video_text, get_summarized_text_from_db, get_timecodes_from_db
+    get_summarized_video_text, get_summarized_text_from_db, get_timecodes_from_db, render_video_details
 from user import add_user_to_db, login_user_from_db, check_if_user_exists, get_user_from_db
 from helper import is_logged_in, otp_generator, send_user_otp, compare_passwords, validate_email, validate_password, \
     clear_user_credentials, object_id_to_str, is_session_expired, convert_video_to_audio
 import whisper
+from helper import open_connection, close_connection
+from bson.objectid import ObjectId
 
 
 routes = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
@@ -117,9 +119,24 @@ def delete_video(video_id):
     if "_id" not in session:
         logout()
 
-    response, status = delete_video_from_db(session, video_id)
+    db, client = open_connection()
+    try:
+        # Delete all associated data
+        video = db.videos.find_one({"_id": ObjectId(video_id), "user_id": ObjectId(session["_id"])})
+        if not video:
+            return jsonify({"error": "Video not found or unauthorized"}), 404
 
-    return jsonify(response), status
+        # Delete audio transcript
+        db.audio_transcripts.delete_many({"video_id": ObjectId(video_id)})
+        
+        # Delete video chunks and metadata
+        response, status = delete_video_from_db(session, video_id)
+        
+        return jsonify(response), status
+    except Exception as e:
+        return jsonify({"error": f"An error occurred while deleting the video: {str(e)}"}), 500
+    finally:
+        close_connection(client)
 
 
 @routes.route('/getVideo/<video_id>')
@@ -127,14 +144,19 @@ def delete_video(video_id):
 def get_video(video_id):
     is_session_expired(session)
 
-    return query_video(video_id)
+    print(f"hit http://127.0.0.1:5000/getVideo/{video_id}")
+    response = query_video(video_id)
+    print(f"original video response: {response}")
+    return response
 
 
 @routes.route('/getSummarizedVideo/<video_id>')
 def get_summarized_video_route(video_id):
     is_session_expired(session)
 
+    print(f"hit http://127.0.0.1:5000/getSummarizedVideo/{video_id}")
     response = get_summarized_video(video_id)
+    print(f"summary video response: {response}")
     if response is None:
         return jsonify({"error": "Summarized video not found"}), 404
     return response
@@ -145,7 +167,9 @@ def get_summarized_video_text_route(video_id):
     is_session_expired(session)
 
     keyframe_threshold = request.args.get("keyframe_threshold", default=80, type=int)
+    print(f"hit http://127.0.0.1:5000/getSummarizedVideoText/{video_id}?keyframe_threshold={keyframe_threshold}")
     response = get_summarized_video_text(video_id, keyframe_threshold=keyframe_threshold)
+    print(f"text summary response: {response}")
     if response is None:
         return jsonify({"error": "Summarized video text not found"}), 404
     return jsonify(response)
@@ -329,6 +353,7 @@ def get_updated_video_list():
 def get_audio_summarized(video_id):
     is_session_expired(session)
 
+    print(f"hit http://127.0.0.1:5000/getAudioSummarized/{video_id}")
     video = query_video(video_id, return_file=True)
     audio_path = convert_video_to_audio(video)
 
@@ -359,7 +384,27 @@ def get_audio_summarized(video_id):
     if os.path.exists(audio_path):
         os.remove(audio_path)
 
-    return jsonify({
+    response = {
         "transcript": transcript,
         "time_codes": time_codes
-    })
+    }
+
+    print(response)
+
+    return jsonify(response)
+
+
+@routes.route('/getAudioSummarizedFromDB/<video_id>')
+
+
+@routes.route('/getAudioTranscript/<video_id>', methods=['GET'])
+def get_audio_transcript(video_id):
+    is_session_expired(session)
+    
+    return get_summarized_text_from_db_route(video_id)
+
+
+@routes.route('/videodetails')
+def video_details_page():
+    is_session_expired(session)
+    return render_video_details()

@@ -7,3 +7,4 @@ ultralytics
 transformers
 moviepy
 openai-whisper
+flask-cors

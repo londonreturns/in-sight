@@ -5,5 +5,161 @@
 {% endblock %}
 
 {% block body %}
+    <main class="min-vh">
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h1 class="card-title mb-4">How In-sight Works</h1>
+                            
+                            <div class="mb-5">
+                                <h2 class="h4 mb-3">Overview</h2>
+                                <p>In-sight is an intelligent video analysis system that helps you understand and summarize video content through advanced AI techniques. The system processes videos in multiple stages to provide comprehensive insights.</p>
+                            </div>
 
-{% endblock %}
+                            <div class="mb-5">
+                                <h2 class="h4 mb-3">1. Video Processing Pipeline</h2>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h3 class="h5 mb-3">Frame Analysis</h3>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                Extracts key frames from the video
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                Analyzes visual content using computer vision
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                Identifies important scenes and transitions
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h3 class="h5 mb-3">Audio Processing</h3>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                Converts speech to text
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                Generates accurate timestamps
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                Creates searchable transcript
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <h2 class="h4 mb-3">2. Key Features</h2>
+                                <div class="row">
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h3 class="h5 card-title">Video Summarization</h3>
+                                                <p class="card-text">Creates concise summaries of video content by identifying and extracting the most important segments.</p>
+                                                <ul class="list-unstyled">
+                                                    <li><i class="bi bi-dot me-2"></i>Adjustable sensitivity</li>
+                                                    <li><i class="bi bi-dot me-2"></i>Customizable keyframe threshold</li>
+                                                    <li><i class="bi bi-dot me-2"></i>Frame-by-frame analysis</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h3 class="h5 card-title">Transcript Generation</h3>
+                                                <p class="card-text">Converts speech to text with precise timing and searchable content.</p>
+                                                <ul class="list-unstyled">
+                                                    <li><i class="bi bi-dot me-2"></i>Real-time transcription</li>
+                                                    <li><i class="bi bi-dot me-2"></i>Searchable content</li>
+                                                    <li><i class="bi bi-dot me-2"></i>Time-coded segments</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h3 class="h5 card-title">Frame Captions</h3>
+                                                <p class="card-text">Provides detailed descriptions of key frames and important moments.</p>
+                                                <ul class="list-unstyled">
+                                                    <li><i class="bi bi-dot me-2"></i>Scene descriptions</li>
+                                                    <li><i class="bi bi-dot me-2"></i>Visual content analysis</li>
+                                                    <li><i class="bi bi-dot me-2"></i>Context-aware captions</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <h2 class="h4 mb-3">3. How to Use</h2>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h3 class="h5 mb-3">Video Upload</h3>
+                                        <ol class="list-group list-group-numbered mb-4">
+                                            <li class="list-group-item">Upload your video file</li>
+                                            <li class="list-group-item">Wait for initial processing</li>
+                                            <li class="list-group-item">Access video details page</li>
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h3 class="h5 mb-3">Analysis Controls</h3>
+                                        <ol class="list-group list-group-numbered mb-4">
+                                            <li class="list-group-item">Adjust sensitivity settings</li>
+                                            <li class="list-group-item">Set keyframe threshold</li>
+                                            <li class="list-group-item">Generate summary</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <h2 class="h4 mb-3">4. Technical Details</h2>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h3 class="h5 mb-3">Processing Parameters</h3>
+                                        <ul class="list-group mb-4">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                Video Shortener Sensitivity
+                                                <span class="badge bg-primary rounded-pill">0.0 - 2.0</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                Keyframe Threshold
+                                                <span class="badge bg-primary rounded-pill">20 - 120</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h3 class="h5 mb-3">Output Formats</h3>
+                                        <ul class="list-group mb-4">
+                                            <li class="list-group-item">Summarized video (MP4)</li>
+                                            <li class="list-group-item">Text transcript (JSON)</li>
+                                            <li class="list-group-item">Frame captions (JSON)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <h4 class="alert-heading">Need Help?</h4>
+                                <p class="mb-0">If you need assistance or have questions about using In-sight, please refer to our documentation or contact support.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %} 

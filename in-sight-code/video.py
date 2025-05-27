@@ -1,10 +1,10 @@
-from flask import make_response
+from flask import make_response, jsonify, request, session, render_template
 from user import check_if_user_exists
 from datetime import datetime
 from gridfs import GridFS
 from database import open_connection, close_connection
 from bson import ObjectId
-from helper import generate_thumbnail
+from helper import generate_thumbnail, is_logged_in
 from io import BytesIO
 from image_captioning import summarize_video_path
 import tempfile
@@ -38,7 +38,8 @@ def store_video(video, session):
         "user_id": user_id,
         "date_added": date_added,
         "file_size": file_size,
-        "summarized_text": {}
+        "summarized_text": {},
+        "is_summarized": False
     }
 
     db.videos.insert_one(video_document)
@@ -158,6 +159,9 @@ def delete_video_from_db(session, video_id):
         if not video:
             return {"error": "Video not found or unauthorized"}, 404
 
+        # Delete audio transcript
+        db.audio_transcripts.delete_many({"video_id": ObjectId(video_id)})
+
         # Delete summarized video and its chunks if present
         if "summarized_video_id" in video:
             try:
@@ -165,7 +169,7 @@ def delete_video_from_db(session, video_id):
             except Exception as e:
                 print(f"Error deleting summarized video: {e}")
 
-            # --- Delete summarized text for this summarized video ---
+            # Delete summarized text for this summarized video
             try:
                 db.summarized_texts.delete_many({"summarized_video_id": video["summarized_video_id"]})
             except Exception as e:
@@ -195,7 +199,7 @@ def delete_video_from_db(session, video_id):
         db.videos.delete_one({"_id": ObjectId(video_id)})
 
         close_connection(client)
-        return {"message": "Video deleted successfully"}, 200
+        return {"message": "Video and all associated data deleted successfully"}, 200
     except Exception as e:
         close_connection(client)
         return {"error": "An error occurred while deleting the video"}, 500
@@ -414,3 +418,71 @@ def get_timecodes_from_db(video_id):
     except Exception as e:
         close_connection(client)
         return []
+
+
+def store_audio_transcript(video_id, transcript_text):
+    """Store audio transcript in the database."""
+    db, client = open_connection()
+    try:
+        transcript_doc = {
+            "video_id": ObjectId(video_id),
+            "text": transcript_text,
+            "timestamp": datetime.now()
+        }
+        db.audio_transcripts.insert_one(transcript_doc)
+        return True
+    except Exception as e:
+        print(f"Error storing audio transcript: {e}")
+        return False
+    finally:
+        close_connection(client)
+
+
+def get_summarized_text_from_db_route(video_id):
+    db, client = open_connection()
+    try:
+        transcript = db.audio_transcripts.find_one({"video_id": ObjectId(video_id)})
+        if not transcript:
+            return jsonify({"error": "Audio transcript not found"}), 404
+
+        return jsonify({
+            "success": True,
+            "transcript": transcript.get("text", ""),
+            "timestamp": transcript.get("timestamp", "")
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to retrieve audio transcript: {str(e)}"}), 500
+    finally:
+        close_connection(client)
+
+
+def render_video_details():
+    video_id = request.args.get('video_id')
+    if not video_id:
+        return jsonify({"error": "Video ID is required"}), 400
+
+    db, client = open_connection()
+    try:
+        video = db.videos.find_one({"_id": ObjectId(video_id), "user_id": ObjectId(session["_id"])})
+        if not video:
+            return jsonify({"error": "Video not found or unauthorized"}), 404
+
+        # Format the date
+        if isinstance(video.get("date_added"), datetime):
+            video["date_added"] = video["date_added"].strftime("%Y-%m-%d")
+        else:
+            video["date_added"] = "Unknown date"
+
+        # Format file size
+        file_size_bytes = video.get("file_size", 0)
+        file_size_mb = (file_size_bytes / (1024 * 1024)) if file_size_bytes else 0
+        video["file_size"] = f"{file_size_mb:.2f} MB"
+
+        return render_template('video_details.html',
+                               video=video,
+                               isLoggedIn=is_logged_in(session),
+                               currentPage="videoDetails")
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    finally:
+        close_connection(client)

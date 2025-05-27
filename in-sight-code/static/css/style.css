@@ -147,7 +147,8 @@
     transition: transform 0.3s ease;
 }
 
-.card:hover {
+/* Only apply hover effect to video cards in the list, not the video player card */
+.video-card:hover {
     transform: scale(1.05);
 }
 
